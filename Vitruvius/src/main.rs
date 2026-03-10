@@ -606,8 +606,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                             let mut ts = FileTransferState::new(sync_path.clone());
                                             ts.metadata = Some(meta);
 
-                                            // Start sliding window — request first 8 chunks
-                                            const WINDOW: usize = 8;
+                                            // Window of 2 — safe for hotspot, avoids stream overflow
+                                            const WINDOW: usize = 2;
                                             let count = fe.total_chunks.min(WINDOW);
                                             for c in 0..count {
                                                 swarm.behaviour_mut().rr.send_request(
@@ -625,12 +625,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                     // Got one chunk
                                     SyncMessage::ChunkResponse { ref file_name, chunk_index, ref data, hash: _ } => {
-                                        const WINDOW: usize = 8;
+                                        // Window of 2 — matches initial request count
+                                        const WINDOW: usize = 2;
 
                                         let peer_transfers = transfers.entry(peer).or_insert_with(HashMap::new);
                                         let ts = match peer_transfers.get_mut(file_name) {
                                             Some(t) => t,
-                                            None => { warn!("Chunk for unknown file {}", file_name); continue; }
+                                            None => {
+                                                // State already cleaned up (file complete) — ignore stray chunks
+                                                continue;
+                                            }
                                         };
 
                                         // Verify against stored metadata hash
@@ -653,7 +657,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                                 level: "ERROR".into(),
                                                 message: format!("{file_name} chunk {chunk_index} hash mismatch — retrying"),
                                             });
-                                            // Retry
                                             swarm.behaviour_mut().rr.send_request(
                                                 &peer,
                                                 SyncMessage::ChunkRequest { file_name: file_name.clone(), chunk_index },
@@ -661,8 +664,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                             continue;
                                         }
 
-                                        // Store and advance sliding window
+                                        // Store chunk
                                         ts.received_chunks.insert(chunk_index, data.clone());
+
+                                        // Advance sliding window — request next unsent chunk
                                         if ts.next_request < total {
                                             swarm.behaviour_mut().rr.send_request(
                                                 &peer,
@@ -695,9 +700,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                                     // Notify sender
                                                     swarm.behaviour_mut().rr.send_request(
                                                         &peer,
-                                                        SyncMessage::TransferComplete { file_name: fname },
+                                                        SyncMessage::TransferComplete { file_name: fname.clone() },
                                                     );
-                                                    peer_transfers.remove(file_name);
+                                                    // Remove state AFTER sending the notification,
+                                                    // so no more chunk requests will be made for this file
+                                                    peer_transfers.remove(&fname);
                                                 }
                                                 Ok(false) => {}
                                                 Err(e) => {
