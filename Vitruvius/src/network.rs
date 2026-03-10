@@ -1,3 +1,4 @@
+
 // src/network.rs
 use anyhow::Result;
 use libp2p::{PeerId, StreamProtocol, Swarm, mdns, request_response};
@@ -46,7 +47,8 @@ pub async fn setup_network() -> Result<Swarm<MyBehaviour>> {
     println!("YOUR ID: {}", local_peer_id);
 
     let config = request_response::Config::default()
-        .with_request_timeout(Duration::from_secs(120));
+        .with_request_timeout(Duration::from_secs(120))
+        .with_max_concurrent_streams(64);
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()
