@@ -400,9 +400,10 @@ canvas#bwc{width:100%;height:100px;display:block}
   <div class="logo"><div class="logo-mark"></div>VITRUVIUS</div>
   <div class="vsep"></div>
   <div class="node-pill" id="nodePill" onclick="copyId()">
-    <span class="copy-flash">COPY</span>
+    <span class="copy-flash">COPY ID</span>
     <div id="dotStatus"></div>
-    <span id="nodeIdShort">NOT CONNECTED</span>
+    <span id="nodeNameDisplay" style="font-weight:700;letter-spacing:.05em">NOT CONNECTED</span>
+    <span id="nodeIdShort" style="opacity:.5;font-size:10px;margin-left:4px"></span>
   </div>
   <span class="h-status" id="hStatus">DISCONNECTED FROM BACKEND</span>
   <div class="spacer"></div>
@@ -435,7 +436,11 @@ canvas#bwc{width:100%;height:100px;display:block}
       <div class="fl">Sync Folder</div>
       <div class="irow">
         <input type="text" id="inFolder" placeholder="/home/user/sync">
-        <button class="btn btn-n sm" onclick="setFolder()">SET</button>
+        <button class="btn btn-n sm" onclick="browseFolderNative()" title="Browse for folder">📁</button>
+        <button class="btn btn-a sm" onclick="setFolder()">SET</button>
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:3px;padding-left:2px">
+        Click 📁 to browse, or type the path manually
       </div>
     </div>
   </div>
@@ -582,7 +587,7 @@ canvas#bwc{width:100%;height:100px;display:block}
     <div class="mb">
       <div class="fr">
         <div class="fl">WebSocket URL</div>
-        <input type="text" id="s_wsUrl" value="ws://127.0.0.1:9001" style="width:100%">        <span class="fh">Address of the Vitruvius backend WebSocket</span>
+        <input type="text" id="s_wsUrl" value="ws://127.0.0.1:__WS_PORT__" style="width:100%">        <span class="fh">Address of the Vitruvius backend WebSocket</span>
       </div>
       <div class="fr">
         <div class="fl">Chunk Window Size</div>
@@ -605,12 +610,14 @@ canvas#bwc{width:100%;height:100px;display:block}
 // ═══════════════════════════════════════════════════════════
 const S = {
   ws: null,
-  wsUrl: 'ws://' + (location.hostname || '127.0.0.1') + ':9001',
+  wsUrl: 'ws://' + (location.hostname || '127.0.0.1') + ':__WS_PORT__',
   myId: null,
-  peers: {},          // peer_id → { id, status, chunksRx, chunksTx, files }
-  transfers: {},      // peer_id → { fileName, total, done, failed, fileSize, startMs }
+  myName: 'Connecting…',
+  peers: {},          // peer_id → { id, name, status, chunksRx, chunksTx, files }
+  transfers: {},      // key → { fileName, total, done, failed, fileSize, startMs }
   queue: [],          // { fileName, peerName, total, done, ext }
   syncFolder: null,
+  localFiles: [],     // [{ name, size, chunks }]
   totalRxBytes: 0,
   chunksRx: 0,
   chunksTx: 0,
@@ -681,34 +688,40 @@ function handle(ev) {
 
     case 'Identity':
       S.myId = ev.peer_id;
-      document.getElementById('nodeIdShort').textContent =
-        ev.peer_id.slice(0,14) + '…' + ev.peer_id.slice(-6);
+      S.myName = ev.node_name || 'Vitruvius-Node';
+      document.getElementById('nodeNameDisplay').textContent = S.myName;
+      document.getElementById('nodeIdShort').textContent = ev.peer_id.slice(0,20) + '…';
+      document.title = 'Vitruvius — ' + S.myName;
       setDot('on'); setStatus('LISTENING');
-      addLog('OK', 'Node identity: ' + ev.peer_id.slice(0,20) + '…');
+      addLog('OK', 'Node identity: ' + S.myName + ' (' + ev.peer_id.slice(0,14) + '…)');
       break;
 
     case 'PeerDiscovered':
       if (!S.peers[ev.peer_id]) {
         S.peers[ev.peer_id] = {
           id: ev.peer_id, addr: ev.addr,
+          name: ev.node_name || short(ev.peer_id),
           status: 'discovered', chunksRx: 0, chunksTx: 0, files: 0
         };
       } else {
         S.peers[ev.peer_id].addr   = ev.addr;
+        S.peers[ev.peer_id].name   = ev.node_name || short(ev.peer_id);
         S.peers[ev.peer_id].status = 'discovered';
       }
       renderPeers();
-      addLog('INFO', 'mDNS discovered ' + short(ev.peer_id) + ' at ' + ev.addr);
+      addLog('INFO', 'mDNS discovered ' + (ev.node_name||short(ev.peer_id)) + ' at ' + ev.addr);
       break;
 
     case 'PeerConnected':
       if (!S.peers[ev.peer_id])
-        S.peers[ev.peer_id] = { id: ev.peer_id, status: 'connected', chunksRx: 0, chunksTx: 0, files: 0 };
-      else
+        S.peers[ev.peer_id] = { id: ev.peer_id, name: ev.node_name || short(ev.peer_id), status: 'connected', chunksRx: 0, chunksTx: 0, files: 0 };
+      else {
         S.peers[ev.peer_id].status = 'connected';
+        if (ev.node_name) S.peers[ev.peer_id].name = ev.node_name;
+      }
       S.connected = Object.values(S.peers).filter(p=>p.status==='connected'||p.status==='syncing').length;
       renderPeers(); updateHeader();
-      toast(short(ev.peer_id) + ' connected', 'ok');
+      toast((ev.node_name || short(ev.peer_id)) + ' connected', 'ok');
       break;
 
     case 'PeerDisconnected':
@@ -727,19 +740,25 @@ function handle(ev) {
       }
       break;
 
+    case 'FolderListing': {
+      S.localFiles = ev.files || [];
+      renderLocalFiles();
+      break;
+    }
+
     case 'TransferStarted': {
       const p = S.peers[ev.peer_id] || { id: ev.peer_id, status: 'syncing', chunksRx: 0, chunksTx: 0, files: 0 };
       p.status = 'syncing';
       S.peers[ev.peer_id] = p;
-      S.transfers[ev.peer_id] = {
+      const tKey = ev.peer_id + '/' + ev.file_name;
+      S.transfers[tKey] = S.transfers[ev.peer_id] = {
         fileName: ev.file_name,
         total: ev.total_chunks,
         done: 0, failed: 0,
         fileSize: ev.file_size,
         startMs: Date.now(),
-        chunkStates: new Array(ev.total_chunks).fill(0) // 0=pending,1=done,2=fail
+        chunkStates: new Array(ev.total_chunks).fill(0)
       };
-      // Add to queue
       const ext = ev.file_name.split('.').pop().toUpperCase().slice(0,4);
       S.queue.unshift({ fileName: ev.file_name, peerId: ev.peer_id, total: ev.total_chunks, done: 0, ext });
       renderPeers(); renderTransfer(ev.peer_id); renderQueue();
@@ -749,26 +768,25 @@ function handle(ev) {
     }
 
     case 'ChunkReceived': {
-      const t = S.transfers[ev.peer_id];
+      const tKey = ev.peer_id + '/' + (ev.file_name||'');
+      let t = S.transfers[tKey] || S.transfers[ev.peer_id];
       if (!t) break;
       S.chunksRx++;
-      S.totalRxBytes += 1048576; // ~1MB per chunk approx
+      S.totalRxBytes += 524288; // ~512KB per chunk
       if (ev.verified) {
         t.done++;
-        t.chunkStates[ev.chunk_index] = 1;
+        if (t.chunkStates && ev.chunk_index < t.chunkStates.length)
+          t.chunkStates[ev.chunk_index] = 1;
         if (S.peers[ev.peer_id]) S.peers[ev.peer_id].chunksRx++;
       } else {
-        t.failed++;
-        t.chunkStates[ev.chunk_index] = 2;
+        t.failed = (t.failed||0) + 1;
+        if (t.chunkStates && ev.chunk_index < t.chunkStates.length)
+          t.chunkStates[ev.chunk_index] = 2;
       }
-      // Track chunk rate for BW estimate
       const now = Date.now();
-      S.chunkRateRx = S.chunksRx / Math.max(1, (now - (S.transfers[ev.peer_id].startMs || now)) / 1000);
-
-      // Update queue entry
-      const qi = S.queue.find(q => q.peerId === ev.peer_id && q.fileName === t.fileName);
+      S.chunkRateRx = S.chunksRx / Math.max(1, (now - (t.startMs || now)) / 1000);
+      const qi = S.queue.find(q => q.peerId === ev.peer_id && q.fileName === (ev.file_name||t.fileName));
       if (qi) qi.done = t.done;
-
       renderTransfer(ev.peer_id);
       renderQueue();
       updateHeader();
@@ -839,10 +857,10 @@ function renderPeers() {
     <div class="peer-card ${p.status}">
       <div class="pc-inner">
         <div class="pc-row1">
-          <span class="pc-name">${nickname(p.id)}</span>
+          <span class="pc-name">${p.name || nickname(p.id)}</span>
           <span class="pc-tag tag-${p.status}">${p.status.toUpperCase()}</span>
         </div>
-        <div class="pc-id">${p.id}</div>
+        <div class="pc-id" style="font-size:9px;opacity:.4;margin-top:1px">${p.id.slice(0,20)}…</div>
         <div class="pc-meta">
           <div class="pcm"><span class="pcm-l">RX CHK</span><span class="pcm-v">${p.chunksRx||0}</span></div>
           <div class="pcm"><span class="pcm-l">TX CHK</span><span class="pcm-v">${p.chunksTx||0}</span></div>
@@ -956,38 +974,79 @@ function renderQueue() {
 // ═══════════════════════════════════════════════════════════
 const S_files = [];  // { name, sizeMB, peerId }
 
-function refreshFiles() {
-  // Each completed transfer adds to the file list
-  Object.values(S.transfers).forEach(t => {
-    if (t.done === t.total && t.total > 0) {
-      const exists = S_files.find(f=>f.name===t.fileName);
-      if (!exists) S_files.push({
-        name: t.fileName,
-        sizeMB: (t.fileSize/(1024*1024)).toFixed(1),
-        peerId: Object.keys(S.transfers).find(k=>S.transfers[k]===t)
-      });
-    }
-  });
-
+function renderLocalFiles() {
   const el = document.getElementById('fileList');
-  if (!S_files.length) {
-    el.innerHTML = '<div class="no-xfer">No files received yet.</div>';
+  if (!S.localFiles || !S.localFiles.length) {
+    el.innerHTML = '<div class="no-xfer">Folder is empty or not set.</div>';
     return;
   }
-  el.innerHTML = S_files.map(f => `
-    <div class="file-row">
+  el.innerHTML = S.localFiles.map(f => {
+    const ext = f.name.split('.').pop().toUpperCase().slice(0,4);
+    const sizeMB = f.size >= 1048576
+      ? (f.size/1048576).toFixed(1) + ' MB'
+      : f.size >= 1024
+        ? (f.size/1024).toFixed(0) + ' KB'
+        : f.size + ' B';
+    return `<div class="file-row">
       <svg width="14" height="14" fill="none" stroke="var(--accent2)" stroke-width="1.5" viewBox="0 0 24 24">
         <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/>
       </svg>
       <div class="fi-name">${f.name}</div>
-      <div class="fi-size">${f.sizeMB} MB</div>
-      <div class="fi-dot fsd-ok"></div>
-    </div>`).join('');
+      <div class="fi-size">${sizeMB}</div>
+      <div class="fi-dot fsd-ok" title="${f.chunks} chunks"></div>
+    </div>`;
+  }).join('');
+}
+
+function refreshFiles() {
+  renderLocalFiles();
 }
 
 // ═══════════════════════════════════════════════════════════
 // COMMANDS (GUI → backend)
 // ═══════════════════════════════════════════════════════════
+// Native folder picker — uses the File System Access API (Chrome/Edge)
+// with a fallback hidden <input> for Firefox
+function browseFolderNative() {
+  // Modern browsers: showDirectoryPicker
+  if (window.showDirectoryPicker) {
+    window.showDirectoryPicker({ mode: 'readwrite' })
+      .then(dir => {
+        // The handle gives us the name; for the full path we use a known trick:
+        // on Linux/desktop browsers, webkitRelativePath gives the path segment.
+        // We'll use the directory name and let the user confirm/edit.
+        document.getElementById('inFolder').value = dir.name;
+        toast('Selected: ' + dir.name + ' — edit path if needed, then SET', 'ok');
+      })
+      .catch(e => {
+        if (e.name !== 'AbortError') toast('Picker error: ' + e.message, 'err');
+      });
+    return;
+  }
+  // Fallback: hidden <input type="file" webkitdirectory>
+  let input = document.getElementById('_folderInput');
+  if (!input) {
+    input = document.createElement('input');
+    input.type = 'file';
+    input.id = '_folderInput';
+    input.setAttribute('webkitdirectory', '');
+    input.setAttribute('directory', '');
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    input.addEventListener('change', () => {
+      if (input.files && input.files.length > 0) {
+        // Extract directory path from the first file's webkitRelativePath
+        const rel = input.files[0].webkitRelativePath;
+        const folderName = rel.split('/')[0];
+        document.getElementById('inFolder').value = folderName;
+        toast('Selected folder: ' + folderName + ' — verify path is correct, then SET', 'ok');
+      }
+      input.value = '';
+    });
+  }
+  input.click();
+}
+
 function setFolder() {
   const p = document.getElementById('inFolder').value.trim();
   if (!p) { toast('Enter a folder path', 'err'); return; }
@@ -1160,7 +1219,12 @@ function toast(msg, type='ok') {
 // UTILS
 // ═══════════════════════════════════════════════════════════
 function short(id) { return id ? id.slice(0,14)+'…' : '?'; }
-function nickname(id) { return id ? 'Node-'+id.slice(-8).toUpperCase() : '?'; }
+function nickname(id) {
+  if (!id) return '?';
+  const p = S.peers[id];
+  if (p && p.name) return p.name;
+  return 'Node-' + id.slice(-8).toUpperCase();
+}
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
