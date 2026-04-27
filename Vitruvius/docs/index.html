@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vitruvius — P2P LAN File Sync</title>
+  <meta name="description" content="Privacy-first, decentralized P2P file synchronization. No cloud. No account. Just sync." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Menlo', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background-color: #09090b; color: #f4f4f5; }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .pulse { animation: pulse-dot 2s ease-in-out infinite; }
+  </style>
+</head>
+<body class="grid-bg min-h-screen antialiased">
+
+  <!-- NAV -->
+  <nav class="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur px-6 py-4">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-xl">🏛️</span>
+        <span class="font-bold text-white text-lg tracking-tight">Vitruvius</span>
+        <span class="bg-emerald-900/40 text-emerald-400 border border-emerald-700/50 text-xs font-mono px-2 py-0.5 rounded-full">v0.3.0</span>
+      </div>
+      <div class="flex items-center gap-5 text-sm text-zinc-400">
+        <a href="#how" class="hover:text-white transition-colors hidden sm:block">How it works</a>
+        <a href="#download" class="hover:text-white transition-colors hidden sm:block">Download</a>
+        <a href="#docs" class="hover:text-white transition-colors hidden sm:block">Docs</a>
+        <a href="https://github.com/XXNOUR/Vitruvius" target="_blank" rel="noreferrer"
+          class="flex items-center gap-1.5 text-zinc-300 hover:text-white transition-colors border border-zinc-700 hover:border-zinc-500 rounded-lg px-3 py-1.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="max-w-5xl mx-auto px-6 pt-24 pb-20 text-center">
+    <div class="inline-flex items-center gap-2 bg-emerald-950/60 border border-emerald-800/50 rounded-full px-4 py-1.5 text-sm text-emerald-400 mb-8">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse"></span>
+      Privacy-first · No cloud · No account
+    </div>
+    <h1 class="text-5xl sm:text-6xl font-bold text-white mb-6 leading-tight tracking-tight">
+      LAN file sync the way<br>
+      <span class="text-emerald-400">it should be.</span>
+    </h1>
+    <p class="text-lg text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+      Vitruvius syncs files between your machines over your local network.
+      No servers. No subscriptions. No data ever leaves your LAN.
+      Encrypted end-to-end with keys that only your devices ever see.
+    </p>
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a href="#download" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
+        Download
+      </a>
+      <a href="https://github.com/XXNOUR/Vitruvius" target="_blank" rel="noreferrer"
+        class="border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white font-medium px-6 py-3 rounded-lg transition-colors">
+        View source
+      </a>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="max-w-5xl mx-auto px-6 py-16 border-t border-zinc-800">
+    <h2 class="text-2xl font-bold text-white text-center mb-10">Built different</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 transition-colors">
+        <div class="text-3xl mb-3">🔒</div>
+        <h3 class="text-white font-semibold text-base mb-2">End-to-end encrypted</h3>
+        <p class="text-zinc-400 text-sm leading-relaxed">ChaCha20-Poly1305 authenticated encryption. Keys are derived locally via X25519 Diffie-Hellman — no server ever sees your key material.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 transition-colors">
+        <div class="text-3xl mb-3">🌐</div>
+        <h3 class="text-white font-semibold text-base mb-2">Zero infrastructure</h3>
+        <p class="text-zinc-400 text-sm leading-relaxed">Peers discover each other via mDNS on your LAN. No relay, no STUN, no signup. If they're on the same subnet, they connect.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 transition-colors">
+        <div class="text-3xl mb-3">🤝</div>
+        <h3 class="text-white font-semibold text-base mb-2">TOFU trust model</h3>
+        <p class="text-zinc-400 text-sm leading-relaxed">SSH-style Trust On First Use. Approve a peer once, reconnections are automatic. Each peer pair has its own unique derived key.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 transition-colors">
+        <div class="text-3xl mb-3">⚡</div>
+        <h3 class="text-white font-semibold text-base mb-2">Instant discovery</h3>
+        <p class="text-zinc-400 text-sm leading-relaxed">mDNS finds peers within seconds of startup. Auto-discovery or manual dial by PeerId — your choice.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 transition-colors">
+        <div class="text-3xl mb-3">📦</div>
+        <h3 class="text-white font-semibold text-base mb-2">Chunked transfers</h3>
+        <p class="text-zinc-400 text-sm leading-relaxed">Files are split, BLAKE3-hashed, and verified chunk by chunk. Interrupted transfers stall-detect and re-request missing pieces.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 transition-colors">
+        <div class="text-3xl mb-3">🦀</div>
+        <h3 class="text-white font-semibold text-base mb-2">Written in Rust</h3>
+        <p class="text-zinc-400 text-sm leading-relaxed">libp2p, tokio, ChaCha20-Poly1305, BLAKE3. A single static binary — no runtime, no interpreter, no shared library dependencies.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="max-w-5xl mx-auto px-6 py-16 border-t border-zinc-800">
+    <h2 class="text-2xl font-bold text-white mb-2">How it works</h2>
+    <p class="text-zinc-400 text-sm mb-10">Five steps from cold start to syncing.</p>
+    <div class="grid sm:grid-cols-2 gap-8">
+      <div class="flex gap-4">
+        <div class="shrink-0 w-8 h-8 rounded-full bg-emerald-900/50 border border-emerald-700 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">1</div>
+        <div class="pt-0.5">
+          <h4 class="text-white font-semibold mb-1">Start on each machine</h4>
+          <p class="text-zinc-400 text-sm leading-relaxed">Run the binary — it starts a GUI on port 9000 and begins broadcasting via mDNS multicast.</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="shrink-0 w-8 h-8 rounded-full bg-emerald-900/50 border border-emerald-700 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">2</div>
+        <div class="pt-0.5">
+          <h4 class="text-white font-semibold mb-1">Peers discover each other</h4>
+          <p class="text-zinc-400 text-sm leading-relaxed">mDNS reaches every device on your subnet within seconds. No manual IP entry needed, though manual dial is supported too.</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="shrink-0 w-8 h-8 rounded-full bg-emerald-900/50 border border-emerald-700 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">3</div>
+        <div class="pt-0.5">
+          <h4 class="text-white font-semibold mb-1">Approve on first connect</h4>
+          <p class="text-zinc-400 text-sm leading-relaxed">A TOFU prompt appears once per new peer. After approval, future reconnects are fully automatic.</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="shrink-0 w-8 h-8 rounded-full bg-emerald-900/50 border border-emerald-700 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">4</div>
+        <div class="pt-0.5">
+          <h4 class="text-white font-semibold mb-1">Keys derived, never shared</h4>
+          <p class="text-zinc-400 text-sm leading-relaxed">X25519 Diffie-Hellman derives a unique shared key per peer pair. Keys live only in ~/.vitruvius/ with 0600 permissions.</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="shrink-0 w-8 h-8 rounded-full bg-emerald-900/50 border border-emerald-700 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">5</div>
+        <div class="pt-0.5">
+          <h4 class="text-white font-semibold mb-1">Set your folder and sync</h4>
+          <p class="text-zinc-400 text-sm leading-relaxed">Point Vitruvius at a folder. Files are watched in real time. Any change syncs to all approved peers immediately.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section id="download" class="max-w-5xl mx-auto px-6 py-16 border-t border-zinc-800">
+    <h2 class="text-2xl font-bold text-white mb-2">Download</h2>
+    <p class="text-zinc-400 text-sm mb-8">Static binaries — no runtime dependencies, no installer needed.</p>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-1 w-fit mb-8">
+      <button onclick="switchTab('linux')" id="tab-linux"
+        class="tab-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-zinc-700 text-white">
+        Linux
+      </button>
+      <button onclick="switchTab('windows')" id="tab-windows"
+        class="tab-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200">
+        Windows
+      </button>
+      <button onclick="switchTab('source')" id="tab-source"
+        class="tab-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200">
+        Build from source
+      </button>
+    </div>
+
+    <!-- Linux panel -->
+    <div id="panel-linux" class="space-y-6">
+      <div>
+        <p class="text-zinc-300 text-sm mb-3">
+          One-line install — downloads a fully static binary, installs to
+          <code class="text-emerald-400 font-mono text-xs bg-zinc-900 px-1 py-0.5 rounded">/usr/local/bin</code>,
+          and registers a systemd user service that starts on login.
+        </p>
+        <div class="copy-box" data-code="curl -fsSL https://github.com/XXNOUR/Vitruvius/raw/main/install.sh | bash">
+          <p class="text-xs text-zinc-500 mb-1.5 font-mono uppercase tracking-widest">Install (x86_64 Linux)</p>
+          <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3">
+            <code class="flex-1 text-sm font-mono text-emerald-400 break-all">curl -fsSL https://github.com/XXNOUR/Vitruvius/raw/main/install.sh | bash</code>
+            <button class="copy-btn shrink-0 text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-2 py-1 transition-colors">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="text-zinc-300 text-sm mb-3">Or grab just the binary:</p>
+        <div class="copy-box" data-code="curl -fsSL  https://github.com/XXNOUR/Vitruvius/releases/download/v0.3.0/vitruvius-linux-x86_64 -o vitruvius && chmod +x vitruvius && sudo mv vitruvius /usr/local/bin/">
+          <p class="text-xs text-zinc-500 mb-1.5 font-mono uppercase tracking-widest">Manual download</p>
+          <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3">
+            <code class="flex-1 text-sm font-mono text-emerald-400 break-all">curl -fsSL https://github.com/XXNOUR/Vitruvius/releases/download/v0.3.0/vitruvius-linux-x86_64 -o vitruvius &amp;&amp; chmod +x vitruvius &amp;&amp; sudo mv vitruvius /usr/local/bin/</code>
+            <button class="copy-btn shrink-0 text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-2 py-1 transition-colors">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <p class="text-zinc-400 text-xs font-mono uppercase tracking-widest mb-3">After install</p>
+        <div class="space-y-1 font-mono text-sm">
+          <p><span class="text-emerald-400">systemctl --user status vitruvius</span><span class="text-zinc-600 ml-3"># check if running</span></p>
+          <p><span class="text-emerald-400">systemctl --user stop vitruvius</span><span class="text-zinc-600 ml-3"># stop</span></p>
+          <p><span class="text-emerald-400">systemctl --user restart vitruvius</span><span class="text-zinc-600 ml-3"># restart</span></p>
+          <p><span class="text-emerald-400">journalctl --user -u vitruvius -f</span><span class="text-zinc-600 ml-3"># live logs</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Windows panel -->
+    <div id="panel-windows" class="space-y-6 hidden">
+      <div class="bg-amber-950/30 border border-amber-800/40 rounded-xl p-4 text-amber-300 text-sm leading-relaxed">
+        Windows support is in early testing. mDNS discovery works on most Windows 10/11 setups.
+        If auto-discovery fails, use manual dial with the peer's IP address and port.
+      </div>
+      <div>
+        <p class="text-zinc-300 text-sm mb-3">
+          Download the <code class="text-emerald-400 font-mono text-xs bg-zinc-900 px-1 py-0.5 rounded">.exe</code> and run it from a terminal. No installer needed.
+        </p>
+        <a href="https://github.com/XXNOUR/Vitruvius/releases/download/v0.3.0/vitruvius-windows-x86_64.exe"
+          class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm">
+          ⬇ Download vitruvius-windows-x86_64.exe
+        </a>
+      </div>
+      <div>
+        <p class="text-zinc-300 text-sm mb-3">Or from PowerShell:</p>
+        <div class="copy-box" data-code='Invoke-WebRequest -Uri "https://github.com/XXNOUR/Vitruvius/releases/download/v0.3.0/vitruvius-windows-x86_64.exe" -OutFile vitruvius.exe'>
+          <p class="text-xs text-zinc-500 mb-1.5 font-mono uppercase tracking-widest">PowerShell</p>
+          <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3">
+            <code class="flex-1 text-sm font-mono text-emerald-400 break-all">Invoke-WebRequest -Uri "https://github.com/XXNOUR/Vitruvius/releases/download/v0.3.0/vitruvius-windows-x86_64.exe" -OutFile vitruvius.exe</code>
+            <button class="copy-btn shrink-0 text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-2 py-1 transition-colors">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 text-sm">
+        <p class="text-zinc-400 text-xs font-mono uppercase tracking-widest mb-3">Run it</p>
+        <code class="text-emerald-400 font-mono">.\vitruvius.exe</code>
+        <p class="text-zinc-500 text-xs mt-3">
+          Open <span class="text-zinc-300">http://localhost:9000</span> in your browser.
+          To start on login: <span class="text-zinc-300 font-mono">Win+R → shell:startup</span> and drop the .exe there.
+        </p>
+      </div>
+    </div>
+
+    <!-- Source panel -->
+    <div id="panel-source" class="space-y-6 hidden">
+      <div>
+        <p class="text-zinc-300 text-sm mb-3">Requires Rust 1.75+.</p>
+        <div class="copy-box" data-code="git clone https://github.com/XXNOUR/Vitruvius && cd Vitruvius && cargo build --release">
+          <p class="text-xs text-zinc-500 mb-1.5 font-mono uppercase tracking-widest">Clone and build</p>
+          <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3">
+            <code class="flex-1 text-sm font-mono text-emerald-400 break-all">git clone https://github.com/XXNOUR/Vitruvius &amp;&amp; cd Vitruvius &amp;&amp; cargo build --release</code>
+            <button class="copy-btn shrink-0 text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-2 py-1 transition-colors">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="text-zinc-300 text-sm mb-3">Fully static binary for distribution (no glibc dependency):</p>
+        <div class="copy-box" data-code="rustup target add x86_64-unknown-linux-musl && cargo build --release --target x86_64-unknown-linux-musl">
+          <p class="text-xs text-zinc-500 mb-1.5 font-mono uppercase tracking-widest">Static musl build — recommended</p>
+          <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3">
+            <code class="flex-1 text-sm font-mono text-emerald-400 break-all">rustup target add x86_64-unknown-linux-musl &amp;&amp; cargo build --release --target x86_64-unknown-linux-musl</code>
+            <button class="copy-btn shrink-0 text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-2 py-1 transition-colors">Copy</button>
+          </div>
+        </div>
+        <p class="text-zinc-500 text-xs mt-2">Binary at: <code class="text-zinc-300">target/x86_64-unknown-linux-musl/release/Vitruvuis</code></p>
+      </div>
+      <div>
+        <p class="text-zinc-300 text-sm mb-3">Cross-compile for Windows from Linux:</p>
+        <div class="copy-box" data-code="rustup target add x86_64-pc-windows-gnu && sudo apt install gcc-mingw-w64-x86-64 -y && cargo build --release --target x86_64-pc-windows-gnu">
+          <p class="text-xs text-zinc-500 mb-1.5 font-mono uppercase tracking-widest">Windows cross-compile</p>
+          <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3">
+            <code class="flex-1 text-sm font-mono text-emerald-400 break-all">rustup target add x86_64-pc-windows-gnu &amp;&amp; sudo apt install gcc-mingw-w64-x86-64 -y &amp;&amp; cargo build --release --target x86_64-pc-windows-gnu</code>
+            <button class="copy-btn shrink-0 text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-2 py-1 transition-colors">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCS -->
+  <section id="docs" class="max-w-5xl mx-auto px-6 py-16 border-t border-zinc-800">
+    <h2 class="text-2xl font-bold text-white mb-2">Quick start</h2>
+    <p class="text-zinc-400 text-sm mb-10">Typical first-run flow for two machines on the same network.</p>
+    <div class="space-y-8">
+      <div>
+        <h3 class="text-white font-semibold mb-3">1. Start on both machines</h3>
+        <div class="copy-box" data-code="vitruvius">
+          <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3">
+            <code class="flex-1 text-sm font-mono text-emerald-400">vitruvius</code>
+            <button class="copy-btn shrink-0 text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-2 py-1 transition-colors">Copy</button>
+          </div>
+        </div>
+        <p class="text-zinc-500 text-xs mt-2">GUI opens at <span class="text-zinc-300">http://localhost:9000</span>. Your PeerId is printed at startup.</p>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-2">2. Peers appear automatically</h3>
+        <p class="text-zinc-400 text-sm">mDNS discovers peers on the same subnet within seconds. If they don't appear (firewall, VPN, etc.), click Dial and enter the peer's IP address.</p>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-2">3. Approve once</h3>
+        <p class="text-zinc-400 text-sm">A dialog appears the first time. After approval, an X25519 key is derived and stored in
+          <code class="text-emerald-400 font-mono text-xs bg-zinc-900 px-1 py-0.5 rounded">~/.vitruvius/</code>
+          with <code class="text-emerald-400 font-mono text-xs bg-zinc-900 px-1 py-0.5 rounded">0600</code> permissions. All future reconnects skip the dialog.</p>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-2">4. Set your folder</h3>
+        <p class="text-zinc-400 text-sm">Enter a folder path in the GUI. Files are watched in real time — anything added or removed syncs immediately to all approved peers.</p>
+      </div>
+
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <p class="text-zinc-400 text-xs font-mono uppercase tracking-widest mb-4">CLI flags</p>
+        <div class="space-y-2 font-mono text-sm">
+          <div class="flex flex-wrap gap-x-4"><code class="text-emerald-400 shrink-0">--http-port &lt;PORT&gt;</code><span class="text-zinc-500">GUI HTTP port (default: 9000)</span></div>
+          <div class="flex flex-wrap gap-x-4"><code class="text-emerald-400 shrink-0">--ws-port &lt;PORT&gt;</code><span class="text-zinc-500">WebSocket port (default: 9001)</span></div>
+          <div class="flex flex-wrap gap-x-4"><code class="text-emerald-400 shrink-0">--node-name &lt;NAME&gt;</code><span class="text-zinc-500">Override this node's display name</span></div>
+          <div class="flex flex-wrap gap-x-4"><code class="text-emerald-400 shrink-0">--key-path &lt;FILE&gt;</code><span class="text-zinc-500">Use a pre-shared key file instead of TOFU</span></div>
+          <div class="flex flex-wrap gap-x-4"><code class="text-emerald-400 shrink-0">--generate-key &lt;FILE&gt;</code><span class="text-zinc-500">Generate a new 32-byte key file and exit</span></div>
+          <div class="flex flex-wrap gap-x-4"><code class="text-emerald-400 shrink-0">--theme gothic</code><span class="text-zinc-500">Enable the gothic UI theme</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="max-w-5xl mx-auto px-6 py-16 border-t border-zinc-800">
+    <h2 class="text-2xl font-bold text-white mb-2">Security model</h2>
+    <p class="text-zinc-400 text-sm mb-8 max-w-2xl">SSH-style TOFU. No PKI, no CA, no certificates to manage.</p>
+    <div class="grid sm:grid-cols-2 gap-4 text-sm">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <p class="text-white font-medium mb-1">✅ Encrypted in transit</p>
+        <p class="text-zinc-400 leading-relaxed">ChaCha20-Poly1305 authenticated encryption. Any tampered byte causes decryption to fail.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <p class="text-white font-medium mb-1">✅ Keys never leave your LAN</p>
+        <p class="text-zinc-400 leading-relaxed">X25519 DH happens directly peer-to-peer. No server ever sees key material.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <p class="text-white font-medium mb-1">✅ Per-peer unique keys</p>
+        <p class="text-zinc-400 leading-relaxed">Each peer pair derives its own shared key. Compromising one pair doesn't affect others.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <p class="text-white font-medium mb-1">✅ Stable identity</p>
+        <p class="text-zinc-400 leading-relaxed">Ed25519 keypair persists in ~/.vitruvius/ — your PeerId is consistent across restarts.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <p class="text-white font-medium mb-1">⚠️ First-connect TOFU risk</p>
+        <p class="text-zinc-400 leading-relaxed">Like SSH, a MITM present on the very first handshake can intercept keys. Compare fingerprints out-of-band for stronger guarantees.</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <p class="text-white font-medium mb-1">⚠️ LAN-only by design</p>
+        <p class="text-zinc-400 leading-relaxed">mDNS doesn't cross routers. Vitruvius is built for trusted local networks, not internet-facing use.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-zinc-800 px-6 py-10 text-center">
+    <div class="flex items-center justify-center gap-2 mb-2">
+      <span>🏛️</span>
+      <span class="font-semibold text-zinc-300">Vitruvius</span>
+    </div>
+    <p class="text-zinc-600 text-sm">
+      Open source · MIT License ·
+      <a href="https://github.com/XXNOUR/Vitruvius" class="text-zinc-400 hover:text-white transition-colors underline underline-offset-2">
+        github.com/XXNOUR/Vitruvius
+      </a>
+    </p>
+  </footer>
+
+  <script>
+    // ── Tab switching ──────────────────────────────────────────────────────────
+    function switchTab(tab) {
+      ['linux', 'windows', 'source'].forEach(t => {
+        document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById('tab-' + t);
+        if (t === tab) {
+          btn.classList.add('bg-zinc-700', 'text-white');
+          btn.classList.remove('text-zinc-400');
+        } else {
+          btn.classList.remove('bg-zinc-700', 'text-white');
+          btn.classList.add('text-zinc-400');
+        }
+      });
+    }
+
+    // ── Copy buttons ───────────────────────────────────────────────────────────
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const box = btn.closest('.copy-box');
+        const text = box.dataset.code;
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.textContent = 'Copy', 2000);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+

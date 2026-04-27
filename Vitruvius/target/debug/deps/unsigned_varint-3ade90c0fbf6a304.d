@@ -1,0 +1,10 @@
+/home/riad/Bada Bing/Bullshit/Decentralizationnée/zero knwoledge/vitruvius-v0_2-fixed/Vitruvius/target/debug/deps/unsigned_varint-3ade90c0fbf6a304.d: /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/lib.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/decode.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/encode.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/io.rs
+
+/home/riad/Bada Bing/Bullshit/Decentralizationnée/zero knwoledge/vitruvius-v0_2-fixed/Vitruvius/target/debug/deps/libunsigned_varint-3ade90c0fbf6a304.rlib: /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/lib.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/decode.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/encode.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/io.rs
+
+/home/riad/Bada Bing/Bullshit/Decentralizationnée/zero knwoledge/vitruvius-v0_2-fixed/Vitruvius/target/debug/deps/libunsigned_varint-3ade90c0fbf6a304.rmeta: /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/lib.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/decode.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/encode.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/io.rs
+
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/lib.rs:
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/decode.rs:
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/encode.rs:
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unsigned-varint-0.8.0/src/io.rs:

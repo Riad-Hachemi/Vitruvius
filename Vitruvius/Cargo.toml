@@ -1,7 +1,13 @@
 [package]
-name = "Vitruv"
-version = "0.1.0"
+name = "vitruvius"
+version = "0.2.0"
 edition = "2021"
+description = "Decentralized P2P file sync with zero-knowledge encryption (transit, metadata, and at-rest)"
+license = "MIT"
+
+[[bin]]
+name = "vitruvius"
+path = "src/main.rs"
 
 [dependencies]
 tokio             = { version = "1.35",  features = ["full"] }
@@ -10,8 +16,17 @@ futures-util      = "0.3"
 libp2p            = { version = "0.53", features = ["tcp", "noise", "mdns", "yamux", "tokio", "macros", "request-response", "cbor"] }
 blake3            = "1.5"
 serde             = { version = "1.0",  features = ["derive"] }
+serde_cbor        = "0.11"
 serde_json        = "1.0"
 anyhow            = "1.0"
 thiserror         = "1.0"
 tracing           = "0.1"
 tracing-subscriber = "0.3"
+notify = { version = "6", features = ["macos_fsevent"] }
+chacha20poly1305 = "0.10.1"
+hex = "0.4.3"
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+rand_core = "0.6"
+rand = "0.10.1"
+dirs = "6.0.0"
+zeroize = { version = "1.8", features = ["zeroize_derive"] }

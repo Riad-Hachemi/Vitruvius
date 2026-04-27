@@ -1,0 +1,11 @@
+/home/riad/Bada Bing/Bullshit/Decentralizationnée/zero knwoledge/vitruvius-v0_2-fixed/Vitruvius/target/debug/deps/base_x-b03de3a2ea621bcd.d: /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/lib.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/alphabet.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/bigint.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/decoder.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/encoder.rs
+
+/home/riad/Bada Bing/Bullshit/Decentralizationnée/zero knwoledge/vitruvius-v0_2-fixed/Vitruvius/target/debug/deps/libbase_x-b03de3a2ea621bcd.rlib: /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/lib.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/alphabet.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/bigint.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/decoder.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/encoder.rs
+
+/home/riad/Bada Bing/Bullshit/Decentralizationnée/zero knwoledge/vitruvius-v0_2-fixed/Vitruvius/target/debug/deps/libbase_x-b03de3a2ea621bcd.rmeta: /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/lib.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/alphabet.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/bigint.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/decoder.rs /home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/encoder.rs
+
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/lib.rs:
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/alphabet.rs:
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/bigint.rs:
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/decoder.rs:
+/home/riad/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-x-0.2.11/src/encoder.rs:

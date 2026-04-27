@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vitruvius</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #09090b;
+  --surf:     #111117;
+  --panel:    #18181f;
+  --border:   #27272f;
+  --border2:  #3f3f52;
+  --accent:   #06b6d4;
+  --accent2:  #0ea5e9;
+  --green:    #10b981;
+  --orange:   #f59e0b;
+  --red:      #f43f5e;
+  --purple:   #a855f7;
+  --text:     #f1f5f9;
+  --text2:    #94a3b8;
+  --text3:    #475569;
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Barlow Condensed', sans-serif;
+  --body:     'Barlow', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 13px; overflow: hidden; }
+
+/* subtle grid texture */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(6,182,212,.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,182,212,.012) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* scanlines overlay */
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.04) 3px, rgba(0,0,0,.04) 4px);
+}
+
+.app {
+  position: relative; z-index: 1;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 48px 1fr 168px;
+  grid-template-columns: 290px 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+header {
+  grid-column: 1 / -1;
+  background: var(--surf);
+  display: flex; align-items: center; gap: 12px; padding: 0 14px;
+  border-bottom: 1px solid var(--border2);
+  position: relative; overflow: hidden;
+}
+header::after {
+  content: ''; position: absolute; bottom: 0; left: -200%; width: 200%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scanH 6s linear infinite;
+}
+@keyframes scanH { to { left: 200%; } }
+
+.logo {
+  font-family: var(--sans); font-weight: 900; font-size: 18px;
+  letter-spacing: .25em; color: var(--accent); text-transform: uppercase;
+  text-shadow: 0 0 20px rgba(6,182,212,.4);
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.logo-gem {
+  width: 16px; height: 16px; border: 2px solid var(--accent);
+  transform: rotate(45deg); position: relative; flex-shrink: 0;
+}
+.logo-gem::after {
+  content: ''; position: absolute; inset: 3px; background: var(--accent); opacity: .2;
+}
+
+.vsep { width: 1px; height: 24px; background: var(--border2); flex-shrink: 0; }
+
+.node-pill {
+  font-family: var(--mono); font-size: 10px; color: var(--text2);
+  background: var(--panel); border: 1px solid var(--border);
+  padding: 4px 10px; cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 7px;
+}
+.node-pill:hover { border-color: var(--accent); color: var(--accent); }
+.node-name { font-weight: 500; color: var(--text); font-size: 11px; }
+
+#dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); flex-shrink: 0; transition: all .3s; }
+#dot.on   { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2.4s ease infinite; }
+#dot.warn { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+#dot.err  { background: var(--red); box-shadow: 0 0 6px var(--red); }
+@keyframes pulse { 50% { opacity: .35; transform: scale(.7); } }
+
+.h-state { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: .08em; }
+
+.spacer { flex: 1; }
+
+.hstats { display: flex; gap: 20px; align-items: center; }
+.hstat { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.hstat-l { font-family: var(--mono); font-size: 7px; color: var(--text3); text-transform: uppercase; letter-spacing: .12em; }
+.hstat-v { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+.hstat-v.c { color: var(--green); }
+.hstat-v.a { color: var(--accent); }
+
+.btn {
+  font-family: var(--sans); font-weight: 700; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; border: 1px solid; padding: 5px 12px; cursor: pointer;
+  background: transparent; transition: all .15s; flex-shrink: 0; white-space: nowrap;
+}
+.btn:disabled { opacity: .25; cursor: not-allowed; }
+.btn-accent { border-color: var(--accent2); color: var(--accent); }
+.btn-accent:hover { background: var(--accent2); color: #fff; box-shadow: 0 0 14px rgba(14,165,233,.35); }
+.btn-green  { border-color: var(--green); color: var(--green); }
+.btn-green:hover { background: var(--green); color: var(--bg); }
+.btn-red    { border-color: var(--red); color: var(--red); }
+.btn-red:hover { background: var(--red); color: #fff; }
+.btn-dim    { border-color: var(--border2); color: var(--text3); }
+.btn-dim:hover { border-color: var(--text2); color: var(--text2); }
+.btn-orange { border-color: var(--orange); color: var(--orange); }
+.btn-orange:hover { background: var(--orange); color: var(--bg); }
+.sm { padding: 3px 8px; font-size: 9px; }
+
+/* ─── PANEL BASE ─────────────────────────────────────────── */
+.panel { background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
+.ph {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px; background: var(--surf);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.pt { font-family: var(--sans); font-weight: 700; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--text2); }
+.badge {
+  font-family: var(--mono); font-size: 9px; background: var(--bg);
+  border: 1px solid var(--border2); padding: 1px 7px; color: var(--accent);
+}
+.pscroll { flex: 1; overflow-y: auto; padding: 8px; }
+.pscroll::-webkit-scrollbar { width: 3px; }
+.pscroll::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* ─── LEFT: PEERS ────────────────────────────────────────── */
+.peers-panel { grid-row: 2; grid-column: 1; }
+
+.connect-form { padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+.fl { font-family: var(--mono); font-size: 8px; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 3px; }
+.irow { display: flex; gap: 5px; }
+input[type=text] {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  font-family: var(--mono); font-size: 10px; padding: 5px 8px; outline: none;
+  transition: border-color .15s; width: 100%;
+}
+input[type=text]:focus { border-color: var(--accent); }
+input[type=text]::placeholder { color: var(--text3); }
+
+.disc-strip {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+  background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.disc-dots span {
+  display: inline-block; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--accent); margin-right: 4px;
+  animation: dd 1.4s ease infinite;
+}
+.disc-dots span:nth-child(2) { animation-delay: .2s; }
+.disc-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes dd { 0%,80%,100% { opacity: .1; transform: scale(.6); } 40% { opacity: 1; transform: scale(1); } }
+.disc-text { font-family: var(--mono); font-size: 8px; color: var(--text3); }
+
+/* approval section */
+.approval-section { border-bottom: 1px solid var(--border); flex-shrink: 0; display: none; }
+.approval-section.has-items { display: block; }
+.approval-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; background: rgba(245,158,11,.07);
+  border-bottom: 1px solid rgba(245,158,11,.2);
+}
+.approval-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--orange); animation: pulse 1.2s ease infinite; }
+.approval-title { font-family: var(--mono); font-size: 8px; color: var(--orange); text-transform: uppercase; letter-spacing: .12em; }
+.approval-card {
+  padding: 10px 12px; border-bottom: 1px solid rgba(245,158,11,.12);
+  background: rgba(245,158,11,.04);
+}
+.appr-name { font-family: var(--sans); font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 2px; }
+.appr-id { font-family: var(--mono); font-size: 8px; color: var(--text3); margin-bottom: 8px; }
+.appr-msg { font-family: var(--mono); font-size: 9px; color: var(--orange); margin-bottom: 8px; }
+.appr-btns { display: flex; gap: 6px; }
+
+/* peer cards */
+.peer-card {
+  border: 1px solid var(--border); margin-bottom: 5px;
+  background: var(--surf); position: relative; overflow: hidden; transition: border-color .2s;
+}
+.peer-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--border); transition: background .2s;
+}
+.peer-card.connected::before { background: var(--green); }
+.peer-card.syncing::before   { background: var(--accent); animation: blink 1s step-end infinite; }
+.peer-card.discovered::before{ background: var(--orange); }
+.peer-card.error::before     { background: var(--red); }
+.peer-card:hover { border-color: var(--border2); }
+@keyframes blink { 50% { opacity: 0; } }
+
+.pc-inner { padding: 8px 10px 8px 13px; }
+.pc-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.pc-name { font-family: var(--sans); font-weight: 700; font-size: 14px; color: var(--text); }
+.pc-badge {
+  font-family: var(--mono); font-size: 7px; padding: 1px 5px;
+  border: 1px solid; text-transform: uppercase; letter-spacing: .08em;
+}
+.badge-connected { border-color: var(--green); color: var(--green); }
+.badge-syncing   { border-color: var(--accent); color: var(--accent); }
+.badge-discovered{ border-color: var(--orange); color: var(--orange); }
+.badge-error     { border-color: var(--red); color: var(--red); }
+.badge-idle      { border-color: var(--text3); color: var(--text3); }
+.pc-id { font-family: var(--mono); font-size: 8px; color: var(--text3); margin-bottom: 5px; }
+.pc-stats { display: flex; gap: 12px; }
+.pc-stat { display: flex; flex-direction: column; gap: 1px; }
+.pc-stat-l { font-family: var(--mono); font-size: 7px; color: var(--text3); text-transform: uppercase; }
+.pc-stat-v { font-family: var(--mono); font-size: 10px; color: var(--text2); }
+.pc-actions {
+  display: flex; gap: 4px; padding: 5px 10px 5px 13px;
+  border-top: 1px solid var(--border); background: var(--bg);
+}
+
+/* ─── CENTER: MAIN ───────────────────────────────────────── */
+.main-panel { grid-row: 2; grid-column: 2; display: flex; flex-direction: column; }
+.tabs { display: flex; background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.tab {
+  font-family: var(--sans); font-weight: 700; font-size: 10px; letter-spacing: .15em;
+  text-transform: uppercase; padding: 9px 18px; color: var(--text3); cursor: pointer;
+  border-right: 1px solid var(--border); border-bottom: 2px solid transparent; transition: all .15s;
+}
+.tab:hover { color: var(--text2); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--panel); }
+.tc { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.tc.active { display: flex; }
+
+/* transfer card */
+.xfer-wrap { padding: 14px; flex: 1; overflow-y: auto; }
+.xfer-card {
+  background: var(--surf); border: 1px solid var(--border2);
+}
+.xfer-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; border-bottom: 1px solid var(--border); background: var(--bg);
+}
+.xfer-fname { font-family: var(--sans); font-weight: 700; font-size: 17px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.xfer-ext { font-family: var(--mono); font-size: 9px; background: var(--accent2); color: #fff; padding: 1px 6px; opacity: .8; }
+.xfer-peer { font-family: var(--mono); font-size: 9px; color: var(--text3); }
+.xfer-body { padding: 16px; }
+
+.prog-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.prog-pct { font-family: var(--mono); font-size: 32px; font-weight: 500; color: var(--accent); line-height: 1; }
+.prog-frac { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.prog-track { height: 4px; background: var(--bg); border: 1px solid var(--border); overflow: hidden; margin-bottom: 14px; }
+.prog-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent));
+  transition: width .3s ease; position: relative;
+}
+.prog-fill::after {
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px;
+  background: #fff; box-shadow: 0 0 10px var(--accent);
+}
+.chunk-grid { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 16px; }
+.ck { width: 9px; height: 9px; background: var(--border); transition: all .12s; flex-shrink: 0; }
+.ck.done { background: var(--accent); }
+.ck.fail { background: var(--red); }
+.ck.active { background: var(--accent2); animation: ck-pulse .7s ease infinite; }
+@keyframes ck-pulse { 50% { opacity: .3; } }
+
+.xfer-metrics {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1px; background: var(--border);
+}
+.xm { background: var(--bg); padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.xm-l { font-family: var(--mono); font-size: 7px; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; }
+.xm-v { font-family: var(--mono); font-size: 14px; color: var(--text); }
+.xm-v.a { color: var(--accent); }
+.xm-v.g { color: var(--green); }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px 24px; gap: 10px; color: var(--text3); text-align: center;
+  font-family: var(--mono); font-size: 10px;
+}
+.empty-icon {
+  width: 40px; height: 40px; border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(45deg); margin-bottom: 8px;
+}
+.empty-icon span { transform: rotate(-45deg); display: block; font-size: 18px; }
+
+/* queue */
+.q-list { padding: 8px; flex: 1; overflow-y: auto; }
+.q-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border: 1px solid var(--border);
+  margin-bottom: 4px; background: var(--surf); transition: border-color .15s;
+}
+.q-item:hover { border-color: var(--border2); }
+.q-ext {
+  width: 28px; height: 28px; background: var(--bg); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 7px; color: var(--text3); flex-shrink: 0; text-transform: uppercase;
+}
+.q-info { flex: 1; min-width: 0; }
+.q-name { font-family: var(--sans); font-weight: 600; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-sub  { font-family: var(--mono); font-size: 8px; color: var(--text3); margin-top: 1px; }
+.q-bar  { width: 60px; height: 3px; background: var(--border); flex-shrink: 0; }
+.q-fill { height: 100%; background: var(--accent); transition: width .3s; }
+.q-pct  { font-family: var(--mono); font-size: 9px; color: var(--text2); white-space: nowrap; }
+
+/* files */
+.f-row {
+  display: flex; align-items: center; gap: 10px; padding: 7px 10px;
+  border-bottom: 1px solid var(--border); cursor: default; transition: background .1s;
+}
+.f-row:hover { background: rgba(6,182,212,.03); }
+.f-name { font-family: var(--body); font-size: 12px; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f-size { font-family: var(--mono); font-size: 9px; color: var(--text2); white-space: nowrap; }
+.f-dot  { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.f-dot.ok { background: var(--green); box-shadow: 0 0 4px var(--green); }
+
+/* ─── BOTTOM: LOG ────────────────────────────────────────── */
+.log-panel {
+  grid-row: 3; grid-column: 1 / -1;
+  background: var(--surf); display: flex; flex-direction: column;
+  border-top: 1px solid var(--border2);
+}
+.log-head {
+  display: flex; align-items: center; gap: 10px; padding: 6px 12px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg);
+}
+.log-title { font-family: var(--sans); font-weight: 700; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--text3); }
+.log-stats { display: flex; gap: 14px; flex: 1; padding-left: 8px; }
+.ls { font-family: var(--mono); font-size: 9px; display: flex; gap: 6px; align-items: center; }
+.ls-l { color: var(--text3); }
+.ls-v { color: var(--text2); }
+.log-body {
+  flex: 1; overflow-y: auto; padding: 4px 0;
+  font-family: var(--mono); font-size: 9px; line-height: 1.75;
+  display: flex; flex-direction: column;
+}
+.log-body::-webkit-scrollbar { width: 3px; }
+.log-body::-webkit-scrollbar-thumb { background: var(--border2); }
+.ll {
+  display: flex; gap: 0; padding: 0 12px;
+  opacity: 0; animation: fadeIn .15s forwards;
+  transition: background .1s;
+}
+.ll:hover { background: rgba(255,255,255,.02); }
+@keyframes fadeIn { to { opacity: 1; } }
+.ll-t  { color: var(--text3); flex-shrink: 0; width: 66px; font-size: 8px; padding-top: 1px; }
+.ll-lv { flex-shrink: 0; width: 38px; font-weight: 500; }
+.ll-m  { color: var(--text2); word-break: break-all; flex: 1; }
+.ll-INFO  .ll-lv { color: var(--accent); }
+.ll-OK    .ll-lv { color: var(--green); }
+.ll-WARN  .ll-lv { color: var(--orange); }
+.ll-ERROR .ll-lv { color: var(--red); }
+
+/* ─── MODALS ─────────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .18s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--panel); border: 1px solid var(--border2);
+  width: 440px; max-width: 94vw; position: relative;
+  transform: translateY(8px); transition: transform .18s;
+}
+.overlay.open .modal { transform: translateY(0); }
+.modal::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+}
+.modal-title { font-family: var(--sans); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.modal-close {
+  background: none; border: 1px solid var(--border2); color: var(--text2);
+  width: 22px; height: 22px; cursor: pointer; font-size: 13px; display: flex;
+  align-items: center; justify-content: center; transition: all .15s;
+}
+.modal-close:hover { border-color: var(--red); color: var(--red); }
+.modal-body { padding: 14px; }
+.modal-foot { padding: 9px 14px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 7px; }
+.form-row { margin-bottom: 12px; }
+.form-row:last-child { margin: 0; }
+.form-hint { font-family: var(--mono); font-size: 8px; color: var(--text3); margin-top: 3px; }
+
+/* ─── TOASTS ─────────────────────────────────────────────── */
+.toast-wrap { position: fixed; bottom: 180px; right: 14px; z-index: 300; display: flex; flex-direction: column; gap: 5px; pointer-events: none; }
+.toast {
+  background: var(--surf); border: 1px solid var(--border2); border-left: 3px solid var(--accent);
+  padding: 7px 13px; font-family: var(--mono); font-size: 10px; color: var(--text);
+  max-width: 280px; animation: tIn .22s ease, tOut .22s ease 3.8s forwards;
+}
+.toast.ok   { border-left-color: var(--green); }
+.toast.err  { border-left-color: var(--red); }
+.toast.warn { border-left-color: var(--orange); }
+@keyframes tIn  { from { opacity:0; transform: translateX(12px); } to { opacity:1; } }
+@keyframes tOut { to   { opacity:0; pointer-events:none; } }
+
+/* offline banner */
+.offline-banner {
+  display: none; position: fixed; bottom: 180px; right: 14px; z-index: 250;
+  background: var(--surf); border: 1px solid var(--border2); border-left: 3px solid var(--red);
+  padding: 10px 14px; font-family: var(--mono); font-size: 10px; color: var(--text); max-width: 300px;
+}
+.offline-banner.show { display: block; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ─── HEADER ─────────────────────────────────────────── -->
+<header>
+  <div class="logo"><div class="logo-gem"></div>VITRUVIUS</div>
+  <div class="vsep"></div>
+  <div class="node-pill" onclick="copyNodeId()" title="Click to copy full peer ID">
+    <div id="dot"></div>
+    <span class="node-name" id="nodeName">NOT CONNECTED</span>
+    <span style="font-family:var(--mono);font-size:9px;color:var(--text3)" id="nodeIdShort"></span>
+  </div>
+  <span class="h-state" id="hState">OFFLINE</span>
+  <div class="vsep"></div>
+  <div class="node-pill" id="vaultPill" title="Zero-knowledge posture"
+       style="cursor:default">
+    <span style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.10em">VAULT</span>
+    <span class="node-name" id="vaultMode" style="color:var(--text3)">—</span>
+    <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">|</span>
+    <span style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.10em">PROTO</span>
+    <span class="node-name" id="vaultProto" style="color:var(--text3)">—</span>
+    <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">|</span>
+    <span style="font-family:var(--mono);font-size:9px;color:var(--text3)" id="vaultFp">key:—</span>
+  </div>
+  <div class="spacer"></div>
+  <div class="hstats">
+    <div class="hstat">
+      <span class="hstat-l">Peers</span>
+      <span class="hstat-v c" id="hPeers">0</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-l">Active</span>
+      <span class="hstat-v" id="hXfers">0</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-l">Chunks RX</span>
+      <span class="hstat-v a" id="hChunks">0</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-l">Uptime</span>
+      <span class="hstat-v" id="hUptime">00:00:00</span>
+    </div>
+    <div class="vsep"></div>
+    <button class="btn btn-accent sm" onclick="openModal('mSync')">+ SYNC</button>
+    <button class="btn btn-dim sm" onclick="openModal('mSettings')">⚙</button>
+  </div>
+</header>
+
+<!-- ─── LEFT: PEERS ────────────────────────────────────── -->
+<div class="panel peers-panel">
+  <div class="ph">
+    <span class="pt">Peers</span>
+    <span class="badge" id="peerBadge">0</span>
+  </div>
+
+  <div class="connect-form">
+    <div>
+      <div class="fl">Peer ID</div>
+      <div class="irow">
+        <input type="text" id="inPeerId" placeholder="12D3KooW…">
+        <button class="btn btn-accent sm" onclick="dialPeer()">DIAL</button>
+      </div>
+    </div>
+    <div>
+      <div class="fl">Multiaddr (optional)</div>
+      <input type="text" id="inAddr" placeholder="/ip4/192.168.x.x/tcp/…">
+    </div>
+    <div>
+      <div class="fl">Sync Folder</div>
+      <div class="irow">
+        <input type="text" id="inFolder" placeholder="/home/user/sync">
+        <button class="btn btn-dim sm" onclick="pickFolder()" title="Browse">📁</button>
+        <button class="btn btn-accent sm" onclick="setFolder()">SET</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="disc-strip">
+    <div class="disc-dots"><span></span><span></span><span></span></div>
+    <span class="disc-text" id="discText">WAITING FOR BACKEND…</span>
+  </div>
+
+  <!-- peer approval section -->
+  <div class="approval-section" id="approvalSection">
+    <div class="approval-header">
+      <div class="approval-dot"></div>
+      <span class="approval-title">Awaiting approval</span>
+    </div>
+    <div id="approvalList"></div>
+  </div>
+
+  <div class="pscroll" id="peerList">
+    <div class="empty-state">
+      <div class="empty-icon"><span>⬡</span></div>
+      No peers discovered yet.<br>mDNS is scanning your LAN.
+    </div>
+  </div>
+</div>
+
+<!-- ─── CENTER: MAIN ───────────────────────────────────── -->
+<div class="main-panel panel">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('xfer',this)">TRANSFER</div>
+    <div class="tab" onclick="switchTab('queue',this)">QUEUE</div>
+    <div class="tab" onclick="switchTab('files',this)">FILES</div>
+  </div>
+
+  <!-- TRANSFER TAB -->
+  <div class="tc active" id="tab-xfer">
+    <div class="xfer-wrap" id="xferWrap">
+      <div class="empty-state" style="padding:50px 24px">
+        <div class="empty-icon"><span>↓</span></div>
+        No active transfer.<br>Connect to a peer and sync to begin.
+      </div>
+    </div>
+  </div>
+
+  <!-- QUEUE TAB -->
+  <div class="tc" id="tab-queue">
+    <div class="ph" style="flex-shrink:0">
+      <span class="pt">Transfer Queue</span>
+      <button class="btn btn-dim sm" onclick="clearDone()">CLEAR DONE</button>
+    </div>
+    <div class="q-list" id="queueList">
+      <div class="empty-state">Queue is empty.</div>
+    </div>
+  </div>
+
+  <!-- FILES TAB -->
+  <div class="tc" id="tab-files">
+    <div class="ph" style="flex-shrink:0">
+      <span class="pt" id="folderLabel">Sync Folder — not set</span>
+    </div>
+    <div class="pscroll" id="fileList">
+      <div class="empty-state">Set a sync folder to see local files.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── BOTTOM: LOG ────────────────────────────────────── -->
+<div class="log-panel">
+  <div class="log-head">
+    <span class="log-title">Event Log</span>
+    <div class="log-stats">
+      <div class="ls"><span class="ls-l">RX</span><span class="ls-v" id="lsRx">0.00 MB</span></div>
+      <div class="ls"><span class="ls-l">CHUNKS</span><span class="ls-v" id="lsChunks">0 / 0</span></div>
+      <div class="ls"><span class="ls-l">CONN</span><span class="ls-v" id="lsConn">0</span></div>
+      <div class="ls"><span class="ls-l">WS</span><span class="ls-v" id="lsWs" style="color:var(--red)">OFFLINE</span></div>
+    </div>
+    <div style="display:flex;gap:5px">
+      <button class="btn btn-dim sm" id="pauseBtn" onclick="togglePause()">⏸</button>
+      <button class="btn btn-dim sm" onclick="clearLog()">CLR</button>
+    </div>
+  </div>
+  <div class="log-body" id="logBody"></div>
+</div>
+
+</div><!-- .app -->
+
+<!-- ─── OFFLINE BANNER ─────────────────────────────────── -->
+<div class="offline-banner" id="offlineBanner">
+  ⚠ Backend offline<br>
+  <span style="color:var(--text3);font-size:8px">Run <code style="color:var(--accent)">cargo run</code> and visit <code style="color:var(--accent)">http://127.0.0.1:9000</code></span>
+</div>
+
+<!-- ─── SYNC MODAL ─────────────────────────────────────── -->
+<div class="overlay" id="mSync">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">New Sync Session</span>
+      <button class="modal-close" onclick="closeModal('mSync')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="fl">Peer ID</div>
+        <input type="text" id="m_peerId" placeholder="12D3KooW…" style="width:100%">
+        <div class="form-hint">Full libp2p PeerID of the remote node</div>
+      </div>
+      <div class="form-row">
+        <div class="fl">Multiaddr (optional)</div>
+        <input type="text" id="m_addr" placeholder="/ip4/…/tcp/…" style="width:100%">
+        <div class="form-hint">Leave blank if peer is on local network (mDNS)</div>
+      </div>
+      <div class="form-row">
+        <div class="fl">Local Sync Folder</div>
+        <input type="text" id="m_folder" placeholder="/home/user/sync" style="width:100%">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-dim sm" onclick="closeModal('mSync')">CANCEL</button>
+      <button class="btn btn-green sm" onclick="doSync()">INITIATE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SETTINGS MODAL ─────────────────────────────────── -->
+<div class="overlay" id="mSettings">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Settings</span>
+      <button class="modal-close" onclick="closeModal('mSettings')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="fl">WebSocket URL</div>
+        <input type="text" id="s_wsUrl" value="ws://127.0.0.1:__WS_PORT__" style="width:100%">
+        <div class="form-hint">Address of the Vitruvius backend WebSocket</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-dim sm" onclick="closeModal('mSettings')">CANCEL</button>
+      <button class="btn btn-accent sm" onclick="saveSettings()">SAVE & RECONNECT</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const S = {
+  ws: null,
+  wsUrl: 'ws://' + (location.hostname || '127.0.0.1') + ':__WS_PORT__',
+  myId: null,
+  myName: '',
+  peers: {},            // peer_id → { id, name, status, chunksRx, chunksTx, files }
+  transfers: {},        // key → { fileName, total, done, failed, chunkStates, startMs }
+  queue: [],
+  syncFolder: null,
+  localFiles: [],
+  pending: {},          // peer_id → display_name (awaiting approval)
+  chunksRx: 0,
+  chunksTx: 0,
+  totalRxBytes: 0,
+  logPaused: false,
+  uptime: 0,
+};
+
+// ═══════════════════════════════════════════════════════════
+// WEBSOCKET
+// ═══════════════════════════════════════════════════════════
+function connect() {
+  if (S.ws) { try { S.ws.close(); } catch(_){} S.ws = null; }
+  if (location.protocol === 'file:') {
+    offline('Open via HTTP, not as file://');
+    return;
+  }
+  S.ws = new WebSocket(S.wsUrl);
+  S.ws.onopen    = onWsOpen;
+  S.ws.onclose   = onWsClose;
+  S.ws.onerror   = () => {};
+  S.ws.onmessage = e => { try { handle(JSON.parse(e.data)); } catch(ex) { console.error(ex); } };
+}
+
+function send(obj) {
+  if (S.ws && S.ws.readyState === WebSocket.OPEN)
+    S.ws.send(JSON.stringify(obj));
+}
+
+function onWsOpen() {
+  document.getElementById('offlineBanner').classList.remove('show');
+  lsSet('lsWs', 'ONLINE', 'var(--green)');
+  dot('on'); setState('LISTENING');
+  document.getElementById('discText').textContent = 'MDNS ACTIVE';
+  addLog('OK', 'Connected to Vitruvius backend');
+  toast('Backend online', 'ok');
+}
+
+function onWsClose() {
+  document.getElementById('offlineBanner').classList.add('show');
+  lsSet('lsWs', 'OFFLINE', 'var(--red)');
+  dot('err'); setState('OFFLINE');
+  document.getElementById('discText').textContent = 'BACKEND OFFLINE';
+  addLog('ERROR', 'Lost connection to backend — retrying in 5s…');
+  if (location.protocol !== 'file:') setTimeout(connect, 5000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENT HANDLER
+// ═══════════════════════════════════════════════════════════
+function handle(ev) {
+  switch (ev.type) {
+
+    case 'Identity':
+      S.myId   = ev.peer_id;
+      S.myName = ev.node_name || 'Vitruvius';
+      document.getElementById('nodeName').textContent    = S.myName;
+      document.getElementById('nodeIdShort').textContent = ev.peer_id.slice(0,14) + '…';
+      document.title = 'Vitruvius — ' + S.myName;
+      dot('on'); setState('LISTENING');
+      addLog('OK', 'Node identity: ' + S.myName + ' (' + ev.peer_id.slice(0,14) + '…)');
+      break;
+
+    case 'VaultStatus': {
+      const ON  = 'color:var(--green)';
+      const OFF = 'color:var(--text3)';
+      const m = document.getElementById('vaultMode');
+      const p = document.getElementById('vaultProto');
+      const f = document.getElementById('vaultFp');
+      if (m) { m.textContent = ev.vault_mode ? 'ON' : 'OFF';
+               m.setAttribute('style', ev.vault_mode ? ON : OFF); }
+      if (p) { p.textContent = ev.encrypted_protocol ? 'ENC' : 'PLAIN';
+               p.setAttribute('style', ev.encrypted_protocol ? ON : OFF); }
+      if (f) { f.textContent = 'key:' + (ev.key_fingerprint || '—'); }
+      addLog('INFO', 'Vault posture: vault=' + ev.vault_mode +
+             ' enc-proto=' + ev.encrypted_protocol +
+             ' key=' + (ev.key_fingerprint || '—'));
+      break;
+    }
+
+    case 'PeerDiscovered':
+      S.peers[ev.peer_id] = S.peers[ev.peer_id] || { id: ev.peer_id, chunksRx: 0, chunksTx: 0, files: 0 };
+      Object.assign(S.peers[ev.peer_id], { addr: ev.addr, name: ev.node_name || nick(ev.peer_id), status: 'discovered' });
+      renderPeers();
+      addLog('INFO', 'mDNS: ' + (ev.node_name || nick(ev.peer_id)) + ' at ' + ev.addr);
+      break;
+
+    case 'PeerConnected':
+      S.peers[ev.peer_id] = S.peers[ev.peer_id] || { id: ev.peer_id, chunksRx: 0, chunksTx: 0, files: 0 };
+      Object.assign(S.peers[ev.peer_id], { status: 'connected', name: ev.node_name || S.peers[ev.peer_id].name || nick(ev.peer_id) });
+      renderPeers(); updateStats();
+      toast((ev.node_name || nick(ev.peer_id)) + ' connected', 'ok');
+      break;
+
+    case 'PeerDisconnected':
+      delete S.peers[ev.peer_id];
+      delete S.pending[ev.peer_id];
+      renderPeers(); renderApprovals(); updateStats();
+      toast(nick(ev.peer_id) + ' disconnected', 'warn');
+      break;
+
+    case 'DialFailed':
+      addLog('ERROR', 'Dial failed: ' + ev.error);
+      toast('Dial failed', 'err');
+      if (ev.peer_id && S.peers[ev.peer_id]) { S.peers[ev.peer_id].status = 'error'; renderPeers(); }
+      break;
+
+    case 'PeerApprovalRequired':
+      S.pending[ev.peer_id] = ev.display_name || nick(ev.peer_id);
+      renderApprovals();
+      addLog('WARN', ev.display_name + ' is requesting to sync — approve or deny in the peers panel');
+      toast(ev.display_name + ' wants to sync', 'warn');
+      break;
+
+    case 'FolderListing':
+      S.localFiles = ev.files || [];
+      renderFiles();
+      break;
+
+    case 'TransferStarted': {
+      if (S.peers[ev.peer_id]) S.peers[ev.peer_id].status = 'syncing';
+      const key = ev.peer_id + '/' + ev.file_name;
+      S.transfers[key] = S.transfers[ev.peer_id] = {
+        fileName: ev.file_name, total: ev.total_chunks,
+        done: 0, failed: 0, fileSize: ev.file_size, startMs: Date.now(),
+        chunkStates: new Array(ev.total_chunks).fill(0),
+      };
+      const ext = ev.file_name.split('.').pop().toUpperCase().slice(0, 4);
+      S.queue.unshift({ fileName: ev.file_name, peerId: ev.peer_id, total: ev.total_chunks, done: 0, ext });
+      renderPeers(); renderTransfer(ev.peer_id); renderQueue();
+      dot('warn'); setState('SYNCING');
+      toast('↓ ' + ev.file_name, 'ok');
+      break;
+    }
+
+    case 'ChunkReceived': {
+      const key = ev.peer_id + '/' + ev.file_name;
+      const t = S.transfers[key] || S.transfers[ev.peer_id];
+      if (!t) break;
+      S.chunksRx++;
+      S.totalRxBytes += 524288;
+      if (ev.verified) {
+        t.done++;
+        if (t.chunkStates && ev.chunk_index < t.chunkStates.length) t.chunkStates[ev.chunk_index] = 1;
+        if (S.peers[ev.peer_id]) S.peers[ev.peer_id].chunksRx++;
+      } else {
+        t.failed = (t.failed || 0) + 1;
+        if (t.chunkStates && ev.chunk_index < t.chunkStates.length) t.chunkStates[ev.chunk_index] = 2;
+      }
+      const qi = S.queue.find(q => q.peerId === ev.peer_id && q.fileName === ev.file_name);
+      if (qi) qi.done = t.done;
+      renderTransfer(ev.peer_id); renderQueue(); updateStats();
+      break;
+    }
+
+    case 'ChunkSent':
+      S.chunksTx++;
+      if (S.peers[ev.peer_id]) S.peers[ev.peer_id].chunksTx = (S.peers[ev.peer_id].chunksTx || 0) + 1;
+      updateStats();
+      break;
+
+    case 'TransferComplete': {
+      const t = S.transfers[ev.peer_id];
+      if (t) t.done = t.total;
+      if (S.peers[ev.peer_id]) { S.peers[ev.peer_id].status = 'connected'; S.peers[ev.peer_id].files = (S.peers[ev.peer_id].files || 0) + 1; }
+      const qi = S.queue.find(q => q.peerId === ev.peer_id && q.fileName === ev.file_name);
+      if (qi) qi.done = qi.total;
+      renderPeers(); renderTransfer(ev.peer_id); renderQueue(); updateStats();
+      dot('on'); setState('LISTENING');
+      toast('✓ ' + ev.file_name, 'ok');
+      renderFiles();
+      break;
+    }
+
+    case 'RemoteEmpty':
+      addLog('INFO', 'Remote peer has no sync folder set');
+      if (S.peers[ev.peer_id]) S.peers[ev.peer_id].status = 'connected';
+      renderPeers();
+      break;
+
+    case 'PeerError':
+      addLog('ERROR', nick(ev.peer_id) + ': ' + ev.message);
+      toast('Peer error', 'err');
+      break;
+
+    case 'Log':
+      addLog(ev.level, ev.message);
+      break;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — PEERS
+// ═══════════════════════════════════════════════════════════
+function renderPeers() {
+  const peers = Object.values(S.peers);
+  document.getElementById('peerBadge').textContent = peers.length;
+  document.getElementById('hPeers').textContent = peers.length;
+
+  const list = document.getElementById('peerList');
+  if (!peers.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon"><span>⬡</span></div>No peers yet — mDNS scanning your LAN.</div>`;
+    return;
+  }
+  list.innerHTML = peers.map(p => {
+    const cls   = p.status || 'idle';
+    const badge = `badge-${cls}`;
+    return `<div class="peer-card ${cls}">
+      <div class="pc-inner">
+        <div class="pc-row1">
+          <span class="pc-name">${esc(p.name || nick(p.id))}</span>
+          <span class="pc-badge ${badge}">${cls.toUpperCase()}</span>
+        </div>
+        <div class="pc-id">${p.id.slice(0, 22)}…</div>
+        <div class="pc-stats">
+          <div class="pc-stat"><span class="pc-stat-l">RX</span><span class="pc-stat-v">${p.chunksRx || 0}</span></div>
+          <div class="pc-stat"><span class="pc-stat-l">TX</span><span class="pc-stat-v">${p.chunksTx || 0}</span></div>
+          <div class="pc-stat"><span class="pc-stat-l">FILES</span><span class="pc-stat-v">${p.files || 0}</span></div>
+        </div>
+      </div>
+      <div class="pc-actions">
+        ${cls === 'discovered'
+          ? `<button class="btn btn-accent sm" onclick="dialById('${p.id}','${p.addr||''}')">DIAL</button>`
+          : `<button class="btn btn-accent sm" onclick="requestSync('${p.id}')">SYNC</button>`}
+        <button class="btn btn-dim sm" onclick="disconnectPeer('${p.id}')">DISCONNECT</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — APPROVALS
+// ═══════════════════════════════════════════════════════════
+function renderApprovals() {
+  const section = document.getElementById('approvalSection');
+  const list    = document.getElementById('approvalList');
+  const entries = Object.entries(S.pending);
+  if (!entries.length) { section.classList.remove('has-items'); return; }
+  section.classList.add('has-items');
+  list.innerHTML = entries.map(([pid, name]) => `
+    <div class="approval-card">
+      <div class="appr-name">${esc(name)}</div>
+      <div class="appr-id">${pid.slice(0, 26)}…</div>
+      <div class="appr-msg">Requesting permission to sync files with you.</div>
+      <div class="appr-btns">
+        <button class="btn btn-green sm" onclick="approvePeer('${pid}')">ALLOW</button>
+        <button class="btn btn-red sm" onclick="denyPeer('${pid}')">DENY</button>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — TRANSFER
+// ═══════════════════════════════════════════════════════════
+function renderTransfer(peerId) {
+  const t = S.transfers[peerId];
+  const wrap = document.getElementById('xferWrap');
+  if (!t) return;
+
+  const pct    = t.total ? Math.round((t.done / t.total) * 100) : 0;
+  const pName  = S.peers[peerId] ? (S.peers[peerId].name || nick(peerId)) : nick(peerId);
+  const ext    = t.fileName.split('.').pop().toUpperCase().slice(0, 4);
+  const elapsed = (Date.now() - t.startMs) / 1000;
+  const rate   = elapsed > 0 ? ((t.done * 524288) / elapsed / 1048576).toFixed(1) : '—';
+  const eta    = (t.done > 0 && t.done < t.total)
+    ? Math.round(((t.total - t.done) * elapsed) / t.done) + 's' : (pct >= 100 ? 'done' : '—');
+  const sizeMB = (t.fileSize / 1048576).toFixed(1);
+
+  const maxCk = 200;
+  const step  = Math.max(1, Math.ceil(t.total / maxCk));
+  let ckHtml  = '';
+  for (let i = 0; i < t.total; i += step) {
+    const st = t.chunkStates[i] || 0;
+    const cl = st === 1 ? 'done' : st === 2 ? 'fail' : '';
+    ckHtml += `<div class="ck ${cl}"></div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="xfer-card">
+      <div class="xfer-head">
+        <div class="xfer-fname">
+          <span class="xfer-ext">${ext}</span>
+          ${esc(t.fileName)}
+        </div>
+        <span class="xfer-peer">from ${esc(pName)}</span>
+      </div>
+      <div class="xfer-body">
+        <div class="prog-row">
+          <span class="prog-pct">${pct}%</span>
+          <span class="prog-frac">${t.done} / ${t.total} chunks</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div class="chunk-grid">${ckHtml}</div>
+        <div class="xfer-metrics">
+          <div class="xm"><span class="xm-l">File size</span><span class="xm-v">${sizeMB} MB</span></div>
+          <div class="xm"><span class="xm-l">Speed</span><span class="xm-v a">${rate} MB/s</span></div>
+          <div class="xm"><span class="xm-l">ETA</span><span class="xm-v">${eta}</span></div>
+          <div class="xm"><span class="xm-l">Failed</span><span class="xm-v" style="color:${t.failed?'var(--red)':'var(--text)'}">${t.failed || 0}</span></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — QUEUE
+// ═══════════════════════════════════════════════════════════
+function renderQueue() {
+  const list = document.getElementById('queueList');
+  document.getElementById('hXfers').textContent = S.queue.filter(q => q.done < q.total).length;
+  if (!S.queue.length) { list.innerHTML = '<div class="empty-state">Queue is empty.</div>'; return; }
+  list.innerHTML = S.queue.map(q => {
+    const pct = q.total ? Math.round((q.done / q.total) * 100) : 0;
+    const done = q.done >= q.total;
+    return `<div class="q-item">
+      <div class="q-ext">${q.ext || '?'}</div>
+      <div class="q-info">
+        <div class="q-name">${esc(q.fileName)}</div>
+        <div class="q-sub">${done ? 'Complete' : q.done + ' / ' + q.total + ' chunks'}</div>
+      </div>
+      <div class="q-bar"><div class="q-fill" style="width:${pct}%;background:${done?'var(--green)':'var(--accent)'}"></div></div>
+      <span class="q-pct" style="color:${done?'var(--green)':'var(--text2)'}">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — FILES
+// ═══════════════════════════════════════════════════════════
+function renderFiles() {
+  const list = document.getElementById('fileList');
+  if (!S.localFiles.length) { list.innerHTML = '<div class="empty-state">Folder is empty or not set.</div>'; return; }
+  list.innerHTML = S.localFiles.map(f => {
+    const sz = f.size >= 1048576 ? (f.size/1048576).toFixed(1)+' MB' : f.size >= 1024 ? (f.size/1024).toFixed(0)+' KB' : f.size+' B';
+    return `<div class="f-row">
+      <svg width="12" height="12" fill="none" stroke="var(--accent2)" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/>
+      </svg>
+      <span class="f-name">${esc(f.name)}</span>
+      <span class="f-size">${sz}</span>
+      <div class="f-dot ok" title="${f.chunks} chunks"></div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATS / UI STATE
+// ═══════════════════════════════════════════════════════════
+function updateStats() {
+  const conns = Object.values(S.peers).filter(p => p.status === 'connected' || p.status === 'syncing').length;
+  document.getElementById('hChunks').textContent  = S.chunksRx;
+  document.getElementById('lsChunks').textContent = S.chunksRx + ' / ' + S.chunksTx;
+  document.getElementById('lsConn').textContent   = conns;
+  const rxMB = S.totalRxBytes / 1048576;
+  document.getElementById('lsRx').textContent = rxMB > 1024 ? (rxMB/1024).toFixed(2)+' GB' : rxMB.toFixed(1)+' MB';
+}
+function dot(cls)   { document.getElementById('dot').className = cls; }
+function setState(t){ document.getElementById('hState').textContent = t; }
+function lsSet(id, text, color) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.style.color = color;
+}
+function offline(msg) { addLog('ERROR', msg); }
+
+// ═══════════════════════════════════════════════════════════
+// COMMANDS (GUI → backend)
+// ═══════════════════════════════════════════════════════════
+function setFolder() {
+  const p = document.getElementById('inFolder').value.trim();
+  if (!p) { toast('Enter a folder path', 'err'); return; }
+  send({ type: 'SetFolder', path: p });
+  S.syncFolder = p;
+  document.getElementById('folderLabel').textContent = 'Sync Folder — ' + p;
+  addLog('INFO', 'Sync folder: ' + p);
+}
+
+function dialPeer() {
+  const pid  = document.getElementById('inPeerId').value.trim();
+  const addr = document.getElementById('inAddr').value.trim() || null;
+  if (!pid) { toast('Enter a Peer ID', 'err'); return; }
+  send({ type: 'DialPeer', peer_id: pid, addr });
+  addLog('INFO', 'Dialing ' + nick(pid) + '…');
+}
+
+function dialById(pid, addr) {
+  send({ type: 'DialPeer', peer_id: pid, addr: addr || null });
+  addLog('INFO', 'Dialing ' + nick(pid) + '…');
+}
+
+function requestSync(peerId) {
+  if (!S.syncFolder) { toast('Set a sync folder first', 'warn'); return; }
+  send({ type: 'RequestSync', peer_id: peerId });
+  addLog('INFO', 'Requesting sync from ' + nick(peerId) + '…');
+  if (S.peers[peerId]) { S.peers[peerId].status = 'syncing'; renderPeers(); }
+}
+
+function disconnectPeer(pid) {
+  send({ type: 'Disconnect', peer_id: pid });
+}
+
+function approvePeer(pid) {
+  send({ type: 'ApprovePeer', peer_id: pid });
+  addLog('OK', 'Approved ' + (S.pending[pid] || nick(pid)));
+  delete S.pending[pid];
+  renderApprovals();
+  toast('Peer approved', 'ok');
+}
+
+function denyPeer(pid) {
+  send({ type: 'DenyPeer', peer_id: pid });
+  addLog('WARN', 'Denied ' + (S.pending[pid] || nick(pid)));
+  delete S.pending[pid];
+  renderApprovals();
+  toast('Peer denied', 'warn');
+}
+
+function doSync() {
+  const pid    = document.getElementById('m_peerId').value.trim();
+  const addr   = document.getElementById('m_addr').value.trim() || null;
+  const folder = document.getElementById('m_folder').value.trim();
+  if (!pid) { toast('Enter a Peer ID', 'err'); return; }
+  if (folder) { send({ type: 'SetFolder', path: folder }); S.syncFolder = folder; }
+  send({ type: 'DialPeer', peer_id: pid, addr });
+  setTimeout(() => {
+    if (S.peers[pid] && (S.peers[pid].status === 'connected' || S.peers[pid].status === 'syncing'))
+      send({ type: 'RequestSync', peer_id: pid });
+  }, 1500);
+  closeModal('mSync');
+  addLog('INFO', 'Initiating sync with ' + nick(pid));
+  toast('Connecting to ' + nick(pid) + '…', 'ok');
+}
+
+function pickFolder() {
+  if (window.showDirectoryPicker) {
+    window.showDirectoryPicker({ mode: 'readwrite' })
+      .then(d => { document.getElementById('inFolder').value = d.name; toast('Selected: ' + d.name + ' — verify path, then SET', 'ok'); })
+      .catch(e => { if (e.name !== 'AbortError') toast('Picker error', 'err'); });
+    return;
+  }
+  let inp = document.getElementById('_fi');
+  if (!inp) {
+    inp = Object.assign(document.createElement('input'), { type:'file', id:'_fi' });
+    inp.setAttribute('webkitdirectory', ''); inp.style.display = 'none';
+    document.body.appendChild(inp);
+    inp.addEventListener('change', () => {
+      if (inp.files[0]) document.getElementById('inFolder').value = inp.files[0].webkitRelativePath.split('/')[0];
+      inp.value = '';
+    });
+  }
+  inp.click();
+}
+
+function clearDone() { S.queue = S.queue.filter(q => q.done < q.total); renderQueue(); }
+
+function copyNodeId() {
+  if (S.myId) { navigator.clipboard?.writeText(S.myId); toast('Peer ID copied', 'ok'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════════════════════
+function addLog(level, msg) {
+  if (S.logPaused) return;
+  const body = document.getElementById('logBody');
+  const now  = new Date().toTimeString().slice(0, 8);
+  const el   = document.createElement('div');
+  el.className = `ll ll-${level}`;
+  el.innerHTML = `<span class="ll-t">${now}</span><span class="ll-lv">${level}</span><span class="ll-m">${esc(msg)}</span>`;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+  while (body.children.length > 500) body.removeChild(body.firstChild);
+}
+function clearLog()    { document.getElementById('logBody').innerHTML = ''; }
+function togglePause() {
+  S.logPaused = !S.logPaused;
+  document.getElementById('pauseBtn').textContent = S.logPaused ? '▶' : '⏸';
+  toast(S.logPaused ? 'Log paused' : 'Log resumed', 'ok');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS / TABS
+// ═══════════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o =>
+  o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); }));
+
+function saveSettings() {
+  S.wsUrl = document.getElementById('s_wsUrl').value.trim();
+  closeModal('mSettings'); connect();
+  toast('Reconnecting…', 'ok');
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type = 'ok') {
+  const wrap = document.getElementById('toasts');
+  const el   = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4300);
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function nick(id) { if (!id) return '?'; const p = S.peers[id]; return p?.name || 'Node-' + id.slice(-8).toUpperCase(); }
+function esc(s)   { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+
+// ═══════════════════════════════════════════════════════════
+// UPTIME TICK
+// ═══════════════════════════════════════════════════════════
+setInterval(() => {
+  S.uptime++;
+  const h = String(Math.floor(S.uptime / 3600)).padStart(2, '0');
+  const m = String(Math.floor((S.uptime % 3600) / 60)).padStart(2, '0');
+  const s = String(S.uptime % 60).padStart(2, '0');
+  document.getElementById('hUptime').textContent = `${h}:${m}:${s}`;
+}, 1000);
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+addLog('INFO', 'Vitruvius GUI loaded — connecting to backend…');
+connect();
+</script>
+</body>
+</html>
+
