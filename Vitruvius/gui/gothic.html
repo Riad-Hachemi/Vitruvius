@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vitruvius</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --stone:    #0a0806;
+  --stone2:   #0f0d0a;
+  --stone3:   #151210;
+  --stone4:   #1c1814;
+  --stone5:   #242018;
+  --panel:    #110e0b;
+  --border:   #2a2218;
+  --border2:  #3d3020;
+  --gold:     #c9a84c;
+  --gold2:    #e8c96d;
+  --gold3:    #a07830;
+  --gold-dim: #6b5220;
+  --ink:      #8b7355;
+  --ink2:     #5a4830;
+  --crimson:  #8b1a1a;
+  --crimson2: #c0392b;
+  --verdigris:#2d6e5e;
+  --verdigris2:#3d9e8a;
+  --parchment:#d4c4a0;
+  --parch2:   #9e8c6a;
+  --parch3:   #6b5c40;
+  --text:     #c8b890;
+  --text2:    #7a6845;
+  --text3:    #3d3020;
+  --glow:     rgba(201,168,76,.15);
+  --glow2:    rgba(201,168,76,.06);
+  --mono:     'Share Tech Mono', monospace;
+  --serif:    'IM Fell English', serif;
+  --display:  'Cinzel', serif;
+  --deco:     'Cinzel Decorative', serif;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0 }
+html, body { height:100%; background:var(--stone); color:var(--text); font-family:var(--serif); font-size:13px; overflow:hidden }
+
+/* ── STONE TEXTURE + GRID ── */
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(201,168,76,.04) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0
+}
+
+/* gothic arch grid lines */
+body::after {
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(201,168,76,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,.025) 1px, transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;z-index:0
+}
+
+/* ── DECORATIVE SVG OVERLAYS ── */
+.arch-corner {
+  position:fixed;pointer-events:none;z-index:1;opacity:.18
+}
+.arch-corner.tl { top:0;left:0 }
+.arch-corner.tr { top:0;right:0;transform:scaleX(-1) }
+.arch-corner.bl { bottom:160px;left:0;transform:scaleY(-1) }
+.arch-corner.br { bottom:160px;right:0;transform:scale(-1,-1) }
+
+/* ── APP GRID ── */
+.app {
+  position:relative;z-index:2;
+  height:100vh;
+  display:grid;
+  grid-template-rows:58px 1fr 155px;
+  grid-template-columns:280px 1fr 265px;
+  gap:1px;
+  background:var(--border)
+}
+
+/* ══════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════ */
+header {
+  grid-column:1/-1;
+  background:var(--stone2);
+  display:flex;align-items:center;padding:0 18px;gap:14px;
+  border-bottom:1px solid var(--border2);
+  position:relative;overflow:hidden
+}
+
+/* gold top rule with glow */
+header::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 0%,var(--gold3) 20%,var(--gold2) 50%,var(--gold3) 80%,transparent 100%);
+  box-shadow:0 0 12px rgba(201,168,76,.4)
+}
+header::after {
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+  animation:hline 8s linear infinite
+}
+@keyframes hline { 0%{background-position:-100% 0} 100%{background-position:200% 0} }
+
+/* ── LOGO ── */
+.logo {
+  display:flex;align-items:center;gap:10px;flex-shrink:0
+}
+.logo-emblem {
+  width:34px;height:34px;position:relative;flex-shrink:0
+}
+.logo-emblem svg { width:100%;height:100% }
+
+.logo-text {
+  display:flex;flex-direction:column;line-height:1
+}
+.logo-main {
+  font-family:var(--deco);font-weight:700;font-size:16px;
+  letter-spacing:.25em;color:var(--gold2);
+  text-shadow:0 0 20px rgba(201,168,76,.5), 0 0 40px rgba(201,168,76,.2);
+  text-transform:uppercase
+}
+.logo-sub {
+  font-family:var(--display);font-size:7px;
+  letter-spacing:.5em;color:var(--gold3);
+  text-transform:uppercase;margin-top:2px
+}
+
+.vsep {
+  width:1px;height:30px;
+  background:linear-gradient(to bottom,transparent,var(--border2),transparent);
+  flex-shrink:0
+}
+
+/* ── NODE PILL ── */
+.node-pill {
+  font-family:var(--mono);font-size:10px;color:var(--text2);
+  background:var(--stone3);
+  border:1px solid var(--border2);
+  padding:4px 10px;cursor:pointer;transition:all .2s;
+  position:relative;display:flex;align-items:center;gap:7px;
+  clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%)
+}
+.node-pill:hover { border-color:var(--gold3);color:var(--gold) }
+.node-pill .copy-flash {
+  position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--stone);font-size:8px;padding:2px 6px;
+  opacity:0;transition:opacity .15s;pointer-events:none;white-space:nowrap;
+  font-family:var(--display);letter-spacing:.1em
+}
+.node-pill:hover .copy-flash { opacity:1 }
+
+#dotStatus {
+  width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0
+}
+#dotStatus.on  { background:var(--verdigris2);box-shadow:0 0 8px var(--verdigris2);animation:dp 2.5s ease infinite }
+#dotStatus.warn{ background:var(--gold);box-shadow:0 0 8px var(--gold) }
+#dotStatus.err { background:var(--crimson2);box-shadow:0 0 8px var(--crimson2) }
+@keyframes dp { 50%{opacity:.3;transform:scale(.7)} }
+
+.h-status {
+  font-family:var(--display);font-size:9px;
+  letter-spacing:.2em;color:var(--text3);text-transform:uppercase
+}
+
+.spacer { flex:1 }
+
+.hstats { display:flex;gap:20px;align-items:center }
+.hs { display:flex;flex-direction:column;align-items:flex-end;gap:1px }
+.hs-l {
+  font-family:var(--display);font-size:7px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.2em
+}
+.hs-v { font-family:var(--mono);font-size:14px;color:var(--text) }
+.hs-v.g { color:var(--verdigris2) }
+.hs-v.a { color:var(--gold2) }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family:var(--display);font-weight:600;font-size:9px;
+  letter-spacing:.2em;text-transform:uppercase;
+  border:1px solid;padding:5px 13px;cursor:pointer;
+  background:transparent;transition:all .2s;flex-shrink:0;
+  position:relative;white-space:nowrap
+}
+.btn::before,.btn::after {
+  content:'';position:absolute;width:4px;height:4px;
+  border-color:inherit;opacity:.5
+}
+.btn::before { top:-1px;left:-1px;border-top:1px solid;border-left:1px solid }
+.btn::after  { bottom:-1px;right:-1px;border-bottom:1px solid;border-right:1px solid }
+
+.btn-a { border-color:var(--gold-dim);color:var(--gold) }
+.btn-a:hover { background:rgba(201,168,76,.1);border-color:var(--gold);box-shadow:0 0 14px rgba(201,168,76,.2) }
+.btn-g { border-color:var(--verdigris);color:var(--verdigris2) }
+.btn-g:hover { background:rgba(61,158,138,.1);border-color:var(--verdigris2);box-shadow:0 0 14px rgba(61,158,138,.2) }
+.btn-r { border-color:var(--crimson);color:var(--crimson2) }
+.btn-r:hover { background:rgba(192,57,43,.1);border-color:var(--crimson2) }
+.btn-n { border-color:var(--border2);color:var(--text2) }
+.btn-n:hover { border-color:var(--ink);color:var(--text) }
+.btn:disabled { opacity:.2;cursor:not-allowed }
+.sm { padding:3px 9px;font-size:8px }
+
+/* ══════════════════════════════════════════
+   PANELS
+══════════════════════════════════════════ */
+.panel {
+  background:var(--panel);
+  display:flex;flex-direction:column;overflow:hidden;
+  position:relative
+}
+
+/* gothic arch top border on each panel */
+.panel::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+  pointer-events:none;z-index:1
+}
+
+.ph {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;background:var(--stone3);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  position:relative
+}
+.ph::after {
+  content:'';position:absolute;bottom:-1px;left:20%;right:20%;height:1px;
+  background:var(--gold-dim);opacity:.4
+}
+
+.pt {
+  font-family:var(--display);font-weight:600;font-size:9px;
+  letter-spacing:.3em;text-transform:uppercase;color:var(--parch3)
+}
+
+.pbadge {
+  font-family:var(--mono);font-size:9px;
+  background:var(--stone4);border:1px solid var(--gold-dim);
+  padding:1px 7px;color:var(--gold);
+  clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)
+}
+
+.pscroll { flex:1;overflow-y:auto;padding:8px }
+.pscroll::-webkit-scrollbar { width:3px }
+.pscroll::-webkit-scrollbar-thumb { background:var(--gold-dim);opacity:.4 }
+.pscroll::-webkit-scrollbar-track { background:transparent }
+
+/* ══════════════════════════════════════════
+   LEFT: PEERS
+══════════════════════════════════════════ */
+.peers-panel { grid-row:2;grid-column:1 }
+
+.cform {
+  padding:10px 12px;border-bottom:1px solid var(--border);
+  flex-shrink:0;display:flex;flex-direction:column;gap:8px;
+  background:var(--stone2)
+}
+.fl {
+  font-family:var(--display);font-size:7px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.25em;margin-bottom:3px
+}
+.irow { display:flex;gap:5px }
+
+input[type=text] {
+  background:var(--stone3);
+  border:1px solid var(--border2);
+  border-bottom:1px solid var(--gold-dim);
+  color:var(--text);font-family:var(--mono);font-size:10px;
+  padding:5px 8px;outline:none;transition:all .2s;width:100%
+}
+input[type=text]:focus {
+  border-color:var(--gold3);
+  background:var(--stone4);
+  box-shadow:0 0 12px rgba(201,168,76,.1) inset
+}
+input[type=text]::placeholder { color:var(--text3);font-style:italic }
+
+.disc-bar {
+  display:flex;align-items:center;gap:8px;
+  padding:7px 12px;background:var(--stone3);
+  border-bottom:1px solid var(--border);flex-shrink:0
+}
+.disc-rune {
+  display:flex;gap:3px
+}
+.disc-rune span {
+  width:4px;height:4px;background:var(--gold3);
+  clip-path:polygon(50% 0%,100% 100%,0% 100%);
+  animation:dd 1.6s ease infinite
+}
+.disc-rune span:nth-child(2){animation-delay:.25s}
+.disc-rune span:nth-child(3){animation-delay:.5s}
+@keyframes dd{0%,80%,100%{opacity:.1;transform:scaleY(.5)}40%{opacity:1;transform:scaleY(1)}}
+.disc-text {
+  font-family:var(--display);font-size:8px;
+  color:var(--text3);letter-spacing:.15em;text-transform:uppercase
+}
+
+/* ── PEER CARDS ── */
+.peer-card {
+  border:1px solid var(--border);margin-bottom:6px;
+  background:var(--stone2);position:relative;overflow:hidden;
+  cursor:pointer;transition:border-color .2s;
+  clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))
+}
+.peer-card::before {
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--border);transition:all .25s
+}
+.peer-card.connected::before { background:var(--verdigris2);box-shadow:0 0 6px var(--verdigris) }
+.peer-card.syncing::before { background:var(--gold);box-shadow:0 0 8px var(--gold);animation:blk 1.2s step-end infinite }
+.peer-card.discovered::before { background:var(--gold3) }
+.peer-card.error::before { background:var(--crimson2) }
+.peer-card:hover { border-color:var(--gold-dim) }
+@keyframes blk{50%{opacity:0}}
+
+.pc-inner { padding:8px 10px 8px 14px }
+.pc-row1 { display:flex;align-items:center;justify-content:space-between;margin-bottom:3px }
+.pc-name { font-family:var(--display);font-weight:600;font-size:12px;color:var(--parchment) }
+.pc-tag {
+  font-family:var(--display);font-size:7px;padding:1px 5px;
+  border:1px solid;text-transform:uppercase;letter-spacing:.12em
+}
+.tag-connected { border-color:var(--verdigris);color:var(--verdigris2) }
+.tag-syncing   { border-color:var(--gold3);color:var(--gold2) }
+.tag-discovered{ border-color:var(--ink);color:var(--parch3) }
+.tag-error     { border-color:var(--crimson);color:var(--crimson2) }
+.tag-idle      { border-color:var(--text3);color:var(--text3) }
+
+.pc-id {
+  font-family:var(--mono);font-size:8px;color:var(--text3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:5px
+}
+.pc-meta { display:flex;gap:12px }
+.pcm { display:flex;flex-direction:column;gap:1px }
+.pcm-l { font-family:var(--display);font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em }
+.pcm-v { font-family:var(--mono);font-size:10px;color:var(--text2) }
+.pc-actions {
+  display:flex;gap:4px;padding:5px 10px;
+  border-top:1px solid var(--border);background:var(--stone3)
+}
+
+/* ══════════════════════════════════════════
+   CENTER: TRANSFER
+══════════════════════════════════════════ */
+.main-panel { grid-row:2;grid-column:2;display:flex;flex-direction:column }
+
+.tabs {
+  display:flex;background:var(--stone2);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  position:relative
+}
+/* decorative gold rule under active tab indicator */
+.tab {
+  font-family:var(--display);font-weight:600;font-size:9px;
+  letter-spacing:.25em;text-transform:uppercase;
+  padding:10px 18px;color:var(--text3);cursor:pointer;
+  border-right:1px solid var(--border);
+  border-bottom:2px solid transparent;transition:all .2s;
+  position:relative
+}
+.tab:hover { color:var(--text2) }
+.tab.active {
+  color:var(--gold2);border-bottom-color:var(--gold);
+  background:var(--panel);
+  text-shadow:0 0 12px rgba(201,168,76,.3)
+}
+.tab.active::after {
+  content:'✦';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  font-size:6px;color:var(--gold3)
+}
+
+.tc { display:none;flex:1;flex-direction:column;overflow:hidden }
+.tc.active { display:flex }
+
+/* ── TRANSFER CARD ── */
+.xfer-card {
+  margin:12px;background:var(--stone2);
+  border:1px solid var(--border2);flex-shrink:0;
+  clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  position:relative
+}
+.xfer-card::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--gold3),var(--gold2),var(--gold3))
+}
+.xfer-head {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;border-bottom:1px solid var(--border);background:var(--stone3)
+}
+.xfer-fname {
+  font-family:var(--display);font-weight:600;font-size:14px;
+  color:var(--parchment);display:flex;align-items:center;gap:8px
+}
+.xfer-ext {
+  font-family:var(--mono);font-size:8px;
+  background:var(--gold-dim);color:var(--gold2);padding:1px 5px;
+  border:1px solid var(--gold3)
+}
+.xfer-from {
+  font-family:var(--display);font-size:8px;color:var(--text3);letter-spacing:.15em
+}
+.xfer-body { padding:14px }
+
+.prog-info {
+  display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px
+}
+.prog-pct {
+  font-family:var(--mono);font-size:28px;color:var(--gold2);
+  font-weight:bold;line-height:1;
+  text-shadow:0 0 20px rgba(201,168,76,.4)
+}
+.prog-frac { font-family:var(--mono);font-size:10px;color:var(--text2) }
+
+.prog-outer {
+  height:4px;background:var(--stone4);
+  border:1px solid var(--border2);position:relative;overflow:hidden
+}
+.prog-inner {
+  height:100%;
+  background:linear-gradient(90deg,var(--gold3),var(--gold2));
+  transition:width .3s ease;position:relative
+}
+.prog-inner::after {
+  content:'';position:absolute;right:0;top:0;bottom:0;width:4px;
+  background:#fff;box-shadow:0 0 8px var(--gold2),0 0 16px var(--gold)
+}
+
+/* chunk grid */
+.chunk-grid { display:flex;flex-wrap:wrap;gap:2px;margin-top:12px }
+.ck {
+  width:9px;height:9px;background:var(--stone4);
+  transition:background .15s,box-shadow .15s;flex-shrink:0;
+  clip-path:polygon(2px 0%,100% 0%,calc(100% - 2px) 100%,0% 100%)
+}
+.ck.done { background:var(--verdigris2);box-shadow:0 0 3px rgba(61,158,138,.4) }
+.ck.fail { background:var(--crimson2) }
+.ck.active { background:var(--gold);animation:ckf .8s ease infinite }
+@keyframes ckf { 50%{opacity:.25} }
+
+.xfer-stats {
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);margin-top:12px
+}
+.xs {
+  background:var(--stone3);padding:8px 10px;
+  display:flex;flex-direction:column;gap:2px
+}
+.xs-l {
+  font-family:var(--display);font-size:7px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.15em
+}
+.xs-v { font-family:var(--mono);font-size:13px;color:var(--text) }
+.xs-v.a { color:var(--gold2) }
+.xs-v.g { color:var(--verdigris2) }
+
+/* ── NO TRANSFER STATE ── */
+.no-xfer {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 30px;gap:10px;color:var(--text3);font-family:var(--display);
+  font-size:9px;text-align:center;letter-spacing:.15em
+}
+.no-xfer-emblem {
+  width:50px;height:50px;position:relative;margin-bottom:8px;opacity:.3
+}
+.no-xfer-emblem svg { width:100%;height:100% }
+
+/* ── QUEUE ── */
+.ql { padding:6px;flex:1;overflow-y:auto }
+.qi {
+  display:flex;align-items:center;gap:8px;
+  padding:7px 10px;border:1px solid var(--border);
+  margin-bottom:4px;background:var(--stone2);transition:border-color .15s;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%)
+}
+.qi:hover { border-color:var(--border2) }
+.qi-icon {
+  width:28px;height:28px;background:var(--stone3);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:7px;color:var(--text3);
+  flex-shrink:0;text-transform:uppercase;letter-spacing:.05em
+}
+.qi-info { flex:1;min-width:0 }
+.qi-name {
+  font-family:var(--display);font-size:11px;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.qi-sub { font-family:var(--mono);font-size:8px;color:var(--text3);margin-top:1px }
+.qi-bar { width:50px;height:3px;background:var(--border);flex-shrink:0 }
+.qi-bar-f { height:100%;background:var(--gold);transition:width .3s }
+.qi-pct { font-family:var(--mono);font-size:9px;color:var(--text2);white-space:nowrap }
+
+/* ── FILES TAB ── */
+.file-row {
+  display:flex;align-items:center;gap:9px;padding:7px 10px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s
+}
+.file-row:hover { background:rgba(201,168,76,.03) }
+.fi-name {
+  font-family:var(--serif);font-size:12px;color:var(--text);
+  flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.fi-size { font-family:var(--mono);font-size:9px;color:var(--text2);white-space:nowrap }
+.fi-rune { font-size:8px;color:var(--verdigris2) }
+
+/* ══════════════════════════════════════════
+   RIGHT: LOG
+══════════════════════════════════════════ */
+.log-panel { grid-row:2;grid-column:3;display:flex;flex-direction:column }
+.log-body {
+  flex:1;overflow-y:auto;padding:7px;
+  font-family:var(--mono);font-size:9px;line-height:2
+}
+.log-body::-webkit-scrollbar { width:3px }
+.log-body::-webkit-scrollbar-thumb { background:var(--border2) }
+
+.ll { display:flex;gap:6px;opacity:0;animation:fi .2s forwards;border-bottom:1px solid var(--border);padding:1px 0 }
+@keyframes fi { to{opacity:1} }
+.ll-t { color:var(--text3);flex-shrink:0;width:64px }
+.ll-lv { flex-shrink:0;width:36px }
+.ll-INFO  .ll-lv { color:var(--gold3) }
+.ll-OK    .ll-lv { color:var(--verdigris2) }
+.ll-WARN  .ll-lv { color:var(--gold2) }
+.ll-ERROR .ll-lv { color:var(--crimson2) }
+.ll-m { color:var(--text2);word-break:break-all }
+
+/* ══════════════════════════════════════════
+   BOTTOM BAR
+══════════════════════════════════════════ */
+.bottom {
+  grid-row:3;grid-column:1/-1;
+  display:grid;grid-template-columns:180px 1fr 220px;
+  gap:1px;background:var(--border)
+}
+.bpanel {
+  background:var(--stone2);padding:10px 14px;
+  display:flex;flex-direction:column;gap:4px;
+  border-top:1px solid var(--gold-dim)
+}
+.b-label {
+  font-family:var(--display);font-size:7px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.2em
+}
+.b-val { font-family:var(--mono);font-size:17px;color:var(--gold2) }
+.b-val span { font-size:10px;color:var(--text3) }
+
+canvas#bwc { width:100%;height:90px;display:block }
+.bw-wrap {
+  background:var(--stone2);padding:8px 14px;
+  display:flex;flex-direction:column;gap:5px;
+  border-top:1px solid var(--gold-dim)
+}
+.bw-hdr { display:flex;align-items:center;justify-content:space-between }
+.bw-title {
+  font-family:var(--display);font-weight:600;font-size:8px;
+  letter-spacing:.25em;text-transform:uppercase;color:var(--text3)
+}
+.bw-leg { display:flex;gap:12px;font-family:var(--mono);font-size:8px }
+.ld { width:10px;height:2px;display:inline-block;vertical-align:middle;margin-right:3px }
+.ld-d { background:var(--verdigris2) }
+.ld-u { background:var(--gold2) }
+
+.sys-stats {
+  background:var(--stone2);padding:10px 14px;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;
+  border-top:1px solid var(--gold-dim)
+}
+.ss { display:flex;flex-direction:column;gap:3px }
+.ss-l {
+  font-family:var(--display);font-size:7px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.15em
+}
+.ss-v { font-family:var(--mono);font-size:12px;color:var(--text) }
+
+/* ══════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════ */
+.overlay {
+  position:fixed;inset:0;
+  background:rgba(5,3,2,.8);
+  backdrop-filter:blur(2px);
+  z-index:100;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s
+}
+.overlay.open { opacity:1;pointer-events:all }
+.modal {
+  background:var(--stone2);border:1px solid var(--border2);
+  width:480px;max-width:94vw;position:relative;
+  transform:translateY(12px);transition:transform .2s;
+  clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))
+}
+.overlay.open .modal { transform:translateY(0) }
+.modal::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold2),transparent);
+  box-shadow:0 0 12px rgba(201,168,76,.4)
+}
+.mh {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;border-bottom:1px solid var(--border)
+}
+.mt {
+  font-family:var(--deco);font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--gold2)
+}
+.mc {
+  background:none;border:1px solid var(--border2);color:var(--text2);
+  width:22px;height:22px;cursor:pointer;font-size:12px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s
+}
+.mc:hover { border-color:var(--crimson);color:var(--crimson2) }
+.mb { padding:16px }
+.mf {
+  padding:10px 16px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:8px
+}
+.fr { margin-bottom:12px }
+.fh {
+  display:block;font-family:var(--display);font-size:7px;
+  color:var(--text3);margin-top:3px;letter-spacing:.1em;font-style:italic
+}
+
+/* ── WS BANNER ── */
+.ws-banner {
+  display:none;position:fixed;bottom:170px;right:16px;z-index:200;
+  background:var(--stone2);border:1px solid var(--border2);border-left:2px solid var(--crimson2);
+  padding:10px 14px;font-family:var(--display);font-size:9px;color:var(--text);
+  max-width:290px;letter-spacing:.05em
+}
+.ws-banner.show { display:block }
+
+/* ── TOASTS ── */
+.tc-wrap {
+  position:fixed;bottom:170px;right:16px;z-index:200;
+  display:flex;flex-direction:column;gap:5px;pointer-events:none
+}
+.toast {
+  background:var(--stone2);border:1px solid var(--border2);border-left:2px solid var(--gold);
+  padding:7px 13px;font-family:var(--display);font-size:9px;color:var(--text);
+  animation:ti .25s ease,to .25s ease 3.8s forwards;max-width:280px;
+  letter-spacing:.08em
+}
+.toast.ok  { border-left-color:var(--verdigris2) }
+.toast.err { border-left-color:var(--crimson2) }
+.toast.warn{ border-left-color:var(--gold2) }
+@keyframes ti { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:none} }
+@keyframes to { to{opacity:0;pointer-events:none} }
+
+/* ── DA VINCI ROTATING EMBLEM ── */
+@keyframes rotate-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes rotate-slow-rev { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+.emblem-outer { animation:rotate-slow 60s linear infinite;transform-origin:center }
+.emblem-inner { animation:rotate-slow-rev 30s linear infinite;transform-origin:center }
+
+/* ── SCAN LINE subtle animation ── */
+@keyframes scanline {
+  0%  { transform:translateY(-100%) }
+  100%{ transform:translateY(100vh) }
+}
+.scanline {
+  position:fixed;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(transparent,rgba(201,168,76,.06),transparent);
+  animation:scanline 12s linear infinite;pointer-events:none;z-index:9999
+}
+</style>
+</head>
+<body>
+
+<!-- subtle scan line -->
+<div class="scanline"></div>
+
+<!-- gothic corner decorations -->
+<div class="arch-corner tl">
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+    <path d="M0 120 L0 20 Q0 0 20 0 L120 0" stroke="#c9a84c" stroke-width="0.8" fill="none"/>
+    <path d="M0 120 L0 30 Q0 8 30 8 L120 8" stroke="#c9a84c" stroke-width="0.4" fill="none"/>
+    <circle cx="8" cy="8" r="3" fill="#c9a84c" opacity=".6"/>
+    <path d="M20 0 L20 20 L0 20" stroke="#c9a84c" stroke-width="0.5" fill="none" opacity=".4"/>
+    <path d="M40 0 L40 10 Q40 40 10 40 L0 40" stroke="#c9a84c" stroke-width="0.3" fill="none" opacity=".3"/>
+    <!-- cross hatch -->
+    <line x1="0" y1="60" x2="60" y2="0" stroke="#c9a84c" stroke-width="0.2" opacity=".2"/>
+    <line x1="0" y1="90" x2="90" y2="0" stroke="#c9a84c" stroke-width="0.2" opacity=".15"/>
+  </svg>
+</div>
+<div class="arch-corner tr">
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+    <path d="M0 120 L0 20 Q0 0 20 0 L120 0" stroke="#c9a84c" stroke-width="0.8" fill="none"/>
+    <path d="M0 120 L0 30 Q0 8 30 8 L120 8" stroke="#c9a84c" stroke-width="0.4" fill="none"/>
+    <circle cx="8" cy="8" r="3" fill="#c9a84c" opacity=".6"/>
+    <path d="M40 0 L40 10 Q40 40 10 40 L0 40" stroke="#c9a84c" stroke-width="0.3" fill="none" opacity=".3"/>
+  </svg>
+</div>
+<div class="arch-corner bl">
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+    <path d="M0 120 L0 20 Q0 0 20 0 L120 0" stroke="#c9a84c" stroke-width="0.8" fill="none"/>
+    <path d="M0 120 L0 30 Q0 8 30 8 L120 8" stroke="#c9a84c" stroke-width="0.4" fill="none"/>
+    <circle cx="8" cy="8" r="3" fill="#c9a84c" opacity=".6"/>
+  </svg>
+</div>
+<div class="arch-corner br">
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+    <path d="M0 120 L0 20 Q0 0 20 0 L120 0" stroke="#c9a84c" stroke-width="0.8" fill="none"/>
+    <path d="M0 120 L0 30 Q0 8 30 8 L120 8" stroke="#c9a84c" stroke-width="0.4" fill="none"/>
+    <circle cx="8" cy="8" r="3" fill="#c9a84c" opacity=".6"/>
+  </svg>
+</div>
+
+<div class="app">
+
+<!-- ─── HEADER ────────────────────────────── -->
+<header>
+
+  <!-- Da Vinci vitruvian-inspired logo emblem -->
+  <div class="logo">
+    <div class="logo-emblem">
+      <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- outer ring -->
+        <circle cx="17" cy="17" r="15.5" stroke="#c9a84c" stroke-width="0.7" opacity=".8" class="emblem-outer"/>
+        <!-- inner ring -->
+        <circle cx="17" cy="17" r="11" stroke="#a07830" stroke-width="0.5" opacity=".6" class="emblem-inner"/>
+        <!-- square inscribed -->
+        <rect x="9" y="9" width="16" height="16" stroke="#c9a84c" stroke-width="0.6" opacity=".5" transform="rotate(0 17 17)"/>
+        <!-- diagonal cross -->
+        <line x1="4" y1="17" x2="30" y2="17" stroke="#c9a84c" stroke-width="0.4" opacity=".4"/>
+        <line x1="17" y1="4" x2="17" y2="30" stroke="#c9a84c" stroke-width="0.4" opacity=".4"/>
+        <!-- diamond -->
+        <polygon points="17,5 29,17 17,29 5,17" stroke="#a07830" stroke-width="0.5" fill="none" opacity=".4"/>
+        <!-- center dot -->
+        <circle cx="17" cy="17" r="2" fill="#c9a84c" opacity=".9"/>
+        <circle cx="17" cy="17" r="1" fill="#e8c96d"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="logo-main">Vitruvius</span>
+      <span class="logo-sub">Distributed File Concordance</span>
+    </div>
+  </div>
+
+  <div class="vsep"></div>
+
+  <div class="node-pill" id="nodePill" onclick="copyId()">
+    <span class="copy-flash">✦ COPY ID ✦</span>
+    <div id="dotStatus"></div>
+    <span id="nodeNameDisplay" style="font-weight:600;font-family:var(--display);letter-spacing:.08em;font-size:10px">NOT CONNECTED</span>
+    <span id="nodeIdShort" style="opacity:.4;font-size:9px;margin-left:4px"></span>
+  </div>
+
+  <span class="h-status" id="hStatus">AWAITING CONNECTION</span>
+
+  <div class="spacer"></div>
+
+  <div class="hstats">
+    <div class="hs"><span class="hs-l">Peers</span><span class="hs-v g" id="hPeers">0</span></div>
+    <div class="hs"><span class="hs-l">Transfers</span><span class="hs-v" id="hXfers">0</span></div>
+    <div class="hs"><span class="hs-l">Chunks Rx</span><span class="hs-v a" id="hChunks">0</span></div>
+    <div class="vsep"></div>
+    <button class="btn btn-a sm" onclick="openModal('mSync')">✦ Sync</button>
+    <button class="btn btn-n sm" onclick="openModal('mSettings')">⚙</button>
+  </div>
+</header>
+
+<!-- ─── LEFT: PEERS ──────────────────────── -->
+<div class="panel peers-panel">
+  <div class="ph">
+    <span class="pt">✦ Peers of the Network</span>
+    <span class="pbadge" id="peerBadge">0</span>
+  </div>
+
+  <div class="cform">
+    <div>
+      <div class="fl">Peer Identifier</div>
+      <div class="irow">
+        <input type="text" id="inPeerId" placeholder="12D3KooW…">
+        <button class="btn btn-a sm" onclick="dialPeer()">Dial</button>
+      </div>
+    </div>
+    <div>
+      <div class="fl">Multiaddr (optional)</div>
+      <input type="text" id="inAddr" placeholder="/ip4/192.168.x.x/tcp/…">
+    </div>
+    <div>
+      <div class="fl">Sync Folder Path</div>
+      <div class="irow">
+        <input type="text" id="inFolder" placeholder="/home/user/sync">
+        <button class="btn btn-n sm" onclick="browseFolderNative()" title="Browse">⬡</button>
+        <button class="btn btn-a sm" onclick="setFolder()">Set</button>
+      </div>
+      <div style="font-size:8px;color:var(--text3);margin-top:3px;padding-left:2px;font-family:var(--display);letter-spacing:.05em">
+        Click ⬡ to browse, or enter path manually
+      </div>
+    </div>
+  </div>
+
+  <div class="disc-bar">
+    <div class="disc-rune"><span></span><span></span><span></span></div>
+    <span class="disc-text" id="discText">Awaiting the backend…</span>
+  </div>
+
+  <div class="pscroll" id="peerList">
+    <div class="no-xfer" style="margin-top:20px">
+      <div class="no-xfer-emblem">
+        <svg viewBox="0 0 50 50" fill="none">
+          <polygon points="25,3 47,25 25,47 3,25" stroke="#c9a84c" stroke-width="0.8"/>
+          <circle cx="25" cy="25" r="8" stroke="#c9a84c" stroke-width="0.6"/>
+          <line x1="25" y1="3" x2="25" y2="47" stroke="#c9a84c" stroke-width="0.4" opacity=".4"/>
+          <line x1="3" y1="25" x2="47" y2="25" stroke="#c9a84c" stroke-width="0.4" opacity=".4"/>
+        </svg>
+      </div>
+      No peers discovered.<br>Waiting for mDNS or manual dial.
+    </div>
+  </div>
+</div>
+
+<!-- ─── CENTER ───────────────────────────── -->
+<div class="main-panel panel">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('xfer',this)">Transfer</div>
+    <div class="tab" onclick="switchTab('queue',this)">Queue</div>
+    <div class="tab" onclick="switchTab('files',this)">Files</div>
+  </div>
+
+  <!-- TRANSFER TAB -->
+  <div class="tc active" id="tab-xfer">
+    <div id="xferCard" style="flex-shrink:0">
+      <div class="no-xfer" style="padding:50px">
+        <div class="no-xfer-emblem" style="opacity:.2">
+          <svg viewBox="0 0 50 50" fill="none">
+            <polygon points="25,3 47,25 25,47 3,25" stroke="#c9a84c" stroke-width="1"/>
+            <circle cx="25" cy="25" r="12" stroke="#c9a84c" stroke-width="0.6"/>
+            <polyline points="25,15 25,28 32,35" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        No active transfer.<br>Dial a peer and request sync to begin.
+      </div>
+    </div>
+  </div>
+
+  <!-- QUEUE TAB -->
+  <div class="tc" id="tab-queue">
+    <div class="ph" style="flex-shrink:0">
+      <span class="pt">Transfer Queue</span>
+      <button class="btn btn-n sm" onclick="clearDone()">Clear Done</button>
+    </div>
+    <div class="ql" id="queueList"><div class="no-xfer">The queue is empty.</div></div>
+  </div>
+
+  <!-- FILES TAB -->
+  <div class="tc" id="tab-files">
+    <div class="ph" style="flex-shrink:0">
+      <span class="pt" id="folderLabel">Sync Folder — not set</span>
+    </div>
+    <div class="pscroll" id="fileList">
+      <div class="no-xfer">Set a sync folder to reveal its contents.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── RIGHT: LOG ───────────────────────── -->
+<div class="panel log-panel">
+  <div class="ph">
+    <span class="pt">✦ Event Codex</span>
+    <div style="display:flex;gap:5px">
+      <button class="btn btn-n sm" id="pauseBtn" onclick="togglePause()">⏸</button>
+      <button class="btn btn-n sm" onclick="clearLog()">Clr</button>
+    </div>
+  </div>
+  <div class="log-body" id="logBody"></div>
+</div>
+
+<!-- ─── BOTTOM ────────────────────────────── -->
+<div class="bottom">
+
+  <div class="bpanel">
+    <div class="b-label">Download</div>
+    <div class="b-val" id="dlVal">0.0 <span>MB/s</span></div>
+    <div class="b-label" style="margin-top:5px">Upload</div>
+    <div class="b-val" style="color:var(--verdigris2)" id="ulVal">0.0 <span>MB/s</span></div>
+    <div class="b-label" style="margin-top:5px">Total Rx</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text2)" id="totalRx">0.00 MB</div>
+  </div>
+
+  <div class="bw-wrap">
+    <div class="bw-hdr">
+      <span class="bw-title">✦ Bandwidth Chronicle</span>
+      <div class="bw-leg">
+        <span><span class="ld ld-d"></span><span style="color:var(--verdigris2)">DL</span></span>
+        <span><span class="ld ld-u"></span><span style="color:var(--gold2)">UL</span></span>
+      </div>
+    </div>
+    <canvas id="bwc"></canvas>
+  </div>
+
+  <div class="sys-stats">
+    <div class="ss">
+      <span class="ss-l">Uptime</span>
+      <div class="ss-v" id="uptimeVal">00:00:00</div>
+    </div>
+    <div class="ss">
+      <span class="ss-l">Connections</span>
+      <div class="ss-v" id="connVal">0</div>
+    </div>
+    <div class="ss">
+      <span class="ss-l">Chunks Rx/Tx</span>
+      <div class="ss-v" id="ckCount">0 / 0</div>
+    </div>
+    <div class="ss">
+      <span class="ss-l">WS Status</span>
+      <div class="ss-v" id="wsStatus" style="color:var(--crimson2)">OFFLINE</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<!-- DISCONNECTED BANNER -->
+<div class="ws-banner" id="wsBanner">
+  ⚠ Backend unreachable<br>
+  <span style="color:var(--text3);font-size:8px;font-family:var(--mono)">
+    Run <code style="color:var(--gold)">cargo run</code> then open
+    <code style="color:var(--gold)">http://127.0.0.1:9000</code>
+  </span>
+</div>
+
+<!-- SYNC MODAL -->
+<div class="overlay" id="mSync">
+  <div class="modal">
+    <div class="mh">
+      <span class="mt">✦ New Sync Session</span>
+      <button class="mc" onclick="closeModal('mSync')">✕</button>
+    </div>
+    <div class="mb">
+      <div class="fr">
+        <div class="fl">Target Peer ID</div>
+        <input type="text" id="m_peerId" placeholder="12D3KooW…" style="width:100%">
+        <span class="fh">Full libp2p PeerID of remote node</span>
+      </div>
+      <div class="fr">
+        <div class="fl">Multiaddr (optional)</div>
+        <input type="text" id="m_addr" placeholder="/ip4/…/tcp/…" style="width:100%">
+        <span class="fh">Leave blank if peer was discovered via mDNS</span>
+      </div>
+      <div class="fr" style="margin:0">
+        <div class="fl">Local Sync Folder</div>
+        <input type="text" id="m_folder" placeholder="/home/user/sync" style="width:100%">
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-n sm" onclick="closeModal('mSync')">Cancel</button>
+      <button class="btn btn-g sm" onclick="doSync()">✦ Initiate</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="mSettings">
+  <div class="modal">
+    <div class="mh">
+      <span class="mt">⚙ Configuration</span>
+      <button class="mc" onclick="closeModal('mSettings')">✕</button>
+    </div>
+    <div class="mb">
+      <div class="fr">
+        <div class="fl">WebSocket URL</div>
+        <input type="text" id="s_wsUrl" value="ws://127.0.0.1:__WS_PORT__" style="width:100%">
+        <span class="fh">Address of the Vitruvius backend WebSocket</span>
+      </div>
+      <div class="fr">
+        <div class="fl">Chunk Window Size</div>
+        <input type="text" id="s_window" value="8" style="width:100%">
+        <span class="fh">Concurrent chunk requests (reference only)</span>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-n sm" onclick="closeModal('mSettings')">Cancel</button>
+      <button class="btn btn-a sm" onclick="saveSettings()">Save & Reconnect</button>
+    </div>
+  </div>
+</div>
+
+<div class="tc-wrap" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const S = {
+  ws: null,
+  wsUrl: 'ws://' + (location.hostname || '127.0.0.1') + ':__WS_PORT__',
+  myId: null,
+  myName: 'Connecting…',
+  peers: {},
+  transfers: {},
+  queue: [],
+  syncFolder: null,
+  localFiles: [],
+  totalRxBytes: 0,
+  chunksRx: 0,
+  chunksTx: 0,
+  connected: 0,
+  logPaused: false,
+  uptime: 0,
+  bwDl: new Array(60).fill(0),
+  bwUl: new Array(60).fill(0),
+  chunkRateRx: 0,
+};
+
+// ═══════════════════════════════════════════════════════════
+// WEBSOCKET
+// ═══════════════════════════════════════════════════════════
+function connect() {
+  if (S.ws) { try { S.ws.close(); } catch(_){} S.ws = null; }
+  if (location.protocol === 'file:') {
+    document.getElementById('wsBanner').innerHTML =
+      '⚠ Open via HTTP, not as a file<br>' +
+      '<span style="color:var(--text3);font-size:8px">Visit <code style="color:var(--gold)">http://127.0.0.1:9000</code></span>';
+    document.getElementById('wsBanner').classList.add('show');
+    document.getElementById('wsStatus').textContent = 'FILE://';
+    document.getElementById('wsStatus').style.color = 'var(--gold3)';
+    addLog('ERROR', 'Opened as file:// — open http://127.0.0.1:9000 instead.');
+    return;
+  }
+  S.ws = new WebSocket(S.wsUrl);
+  S.ws.onopen    = () => onWsOpen();
+  S.ws.onclose   = () => onWsClose();
+  S.ws.onerror   = () => {};
+  S.ws.onmessage = e => { try { handle(JSON.parse(e.data)); } catch(ex) { console.error(ex); } };
+}
+
+function send(obj) {
+  if (S.ws && S.ws.readyState === WebSocket.OPEN)
+    S.ws.send(JSON.stringify(obj));
+}
+
+function onWsOpen() {
+  document.getElementById('wsBanner').classList.remove('show');
+  document.getElementById('wsStatus').textContent = 'ONLINE';
+  document.getElementById('wsStatus').style.color = 'var(--verdigris2)';
+  document.getElementById('discText').textContent = 'MDNS DISCOVERY ACTIVE';
+  setDot('on'); setStatus('LISTENING');
+  addLog('OK', 'Connected to Vitruvius backend');
+  toast('Backend connected', 'ok');
+}
+
+function onWsClose() {
+  document.getElementById('wsBanner').classList.add('show');
+  document.getElementById('wsStatus').textContent = 'OFFLINE';
+  document.getElementById('wsStatus').style.color = 'var(--crimson2)';
+  document.getElementById('discText').textContent = 'BACKEND OFFLINE';
+  setDot('err'); setStatus('DISCONNECTED');
+  addLog('ERROR', 'Lost connection — retrying in 5s…');
+  if (location.protocol !== 'file:') setTimeout(connect, 5000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENT HANDLER
+// ═══════════════════════════════════════════════════════════
+function handle(ev) {
+  switch (ev.type) {
+
+    case 'Identity':
+      S.myId   = ev.peer_id;
+      S.myName = ev.node_name || 'Vitruvius-Node';
+      document.getElementById('nodeNameDisplay').textContent = S.myName;
+      document.getElementById('nodeIdShort').textContent = ev.peer_id.slice(0,20) + '…';
+      document.title = 'Vitruvius — ' + S.myName;
+      setDot('on'); setStatus('LISTENING');
+      addLog('OK', 'Node identity: ' + S.myName + ' (' + ev.peer_id.slice(0,14) + '…)');
+      break;
+
+    case 'PeerDiscovered':
+      if (!S.peers[ev.peer_id]) {
+        S.peers[ev.peer_id] = {
+          id: ev.peer_id, addr: ev.addr,
+          name: ev.node_name || short(ev.peer_id),
+          status: 'discovered', chunksRx: 0, chunksTx: 0, files: 0
+        };
+      } else {
+        S.peers[ev.peer_id].addr   = ev.addr;
+        S.peers[ev.peer_id].name   = ev.node_name || short(ev.peer_id);
+        S.peers[ev.peer_id].status = 'discovered';
+      }
+      renderPeers();
+      addLog('INFO', 'mDNS: ' + (ev.node_name||short(ev.peer_id)) + ' at ' + ev.addr);
+      break;
+
+    case 'PeerConnected':
+      if (!S.peers[ev.peer_id])
+        S.peers[ev.peer_id] = { id:ev.peer_id, name:ev.node_name||short(ev.peer_id), status:'connected', chunksRx:0, chunksTx:0, files:0 };
+      else {
+        S.peers[ev.peer_id].status = 'connected';
+        if (ev.node_name) S.peers[ev.peer_id].name = ev.node_name;
+      }
+      S.connected = Object.values(S.peers).filter(p=>p.status==='connected'||p.status==='syncing').length;
+      renderPeers(); updateHeader();
+      toast((ev.node_name||short(ev.peer_id)) + ' connected', 'ok');
+      break;
+
+    case 'PeerDisconnected':
+      if (S.peers[ev.peer_id]) delete S.peers[ev.peer_id];
+      S.connected = Object.values(S.peers).filter(p=>p.status==='connected'||p.status==='syncing').length;
+      renderPeers(); updateHeader();
+      toast(short(ev.peer_id) + ' disconnected', 'warn');
+      break;
+
+    case 'DialFailed':
+      addLog('ERROR', 'Dial failed: ' + ev.error);
+      toast('Dial failed', 'err');
+      if (ev.peer_id && S.peers[ev.peer_id]) { S.peers[ev.peer_id].status = 'error'; renderPeers(); }
+      break;
+
+    case 'FolderListing':
+      S.localFiles = ev.files || [];
+      renderLocalFiles();
+      break;
+
+    case 'TransferStarted': {
+      const p = S.peers[ev.peer_id] || { id:ev.peer_id, status:'syncing', chunksRx:0, chunksTx:0, files:0 };
+      p.status = 'syncing';
+      S.peers[ev.peer_id] = p;
+      const tKey = ev.peer_id + '/' + ev.file_name;
+      S.transfers[tKey] = S.transfers[ev.peer_id] = {
+        fileName: ev.file_name, total: ev.total_chunks,
+        done: 0, failed: 0, fileSize: ev.file_size,
+        startMs: Date.now(),
+        chunkStates: new Array(ev.total_chunks).fill(0)
+      };
+      const ext = ev.file_name.split('.').pop().toUpperCase().slice(0,4);
+      S.queue.unshift({ fileName:ev.file_name, peerId:ev.peer_id, total:ev.total_chunks, done:0, ext });
+      renderPeers(); renderTransfer(ev.peer_id); renderQueue();
+      setDot('warn'); setStatus('SYNCING');
+      toast('Transfer: ' + ev.file_name, 'ok');
+      break;
+    }
+
+    case 'ChunkReceived': {
+      const tKey = ev.peer_id + '/' + (ev.file_name||'');
+      let t = S.transfers[tKey] || S.transfers[ev.peer_id];
+      if (!t) break;
+      S.chunksRx++;
+      S.totalRxBytes += 524288;
+      if (ev.verified) {
+        t.done++;
+        if (t.chunkStates && ev.chunk_index < t.chunkStates.length)
+          t.chunkStates[ev.chunk_index] = 1;
+        if (S.peers[ev.peer_id]) S.peers[ev.peer_id].chunksRx++;
+      } else {
+        t.failed = (t.failed||0)+1;
+        if (t.chunkStates && ev.chunk_index < t.chunkStates.length)
+          t.chunkStates[ev.chunk_index] = 2;
+      }
+      const now = Date.now();
+      S.chunkRateRx = S.chunksRx / Math.max(1,(now-(t.startMs||now))/1000);
+      const qi = S.queue.find(q=>q.peerId===ev.peer_id && q.fileName===(ev.file_name||t.fileName));
+      if (qi) qi.done = t.done;
+      renderTransfer(ev.peer_id); renderQueue(); updateHeader();
+      break;
+    }
+
+    case 'ChunkSent':
+      S.chunksTx++;
+      if (S.peers[ev.peer_id]) S.peers[ev.peer_id].chunksTx = (S.peers[ev.peer_id].chunksTx||0)+1;
+      updateHeader();
+      break;
+
+    case 'TransferComplete': {
+      const t = S.transfers[ev.peer_id];
+      if (t) t.done = t.total;
+      if (S.peers[ev.peer_id]) {
+        S.peers[ev.peer_id].status = 'connected';
+        S.peers[ev.peer_id].files  = (S.peers[ev.peer_id].files||0)+1;
+      }
+      const qi = S.queue.find(q=>q.peerId===ev.peer_id && q.fileName===ev.file_name);
+      if (qi) qi.done = qi.total;
+      renderPeers(); renderTransfer(ev.peer_id); renderQueue(); updateHeader();
+      setDot('on'); setStatus('LISTENING');
+      toast('✦ Complete: ' + ev.file_name, 'ok');
+      refreshFiles();
+      break;
+    }
+
+    case 'RemoteEmpty':
+      addLog('WARN', 'Remote folder empty: ' + short(ev.peer_id));
+      toast('Remote folder is empty', 'warn');
+      if (S.peers[ev.peer_id]) S.peers[ev.peer_id].status = 'connected';
+      renderPeers();
+      break;
+
+    case 'PeerError':
+      addLog('ERROR', short(ev.peer_id) + ': ' + ev.message);
+      toast('Peer error: ' + ev.message, 'err');
+      break;
+
+    case 'Log':
+      addLog(ev.level, ev.message);
+      break;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER PEERS
+// ═══════════════════════════════════════════════════════════
+function renderPeers() {
+  const list  = document.getElementById('peerList');
+  const peers = Object.values(S.peers);
+  document.getElementById('peerBadge').textContent = peers.length;
+  document.getElementById('hPeers').textContent    = peers.length;
+  document.getElementById('connVal').textContent   =
+    peers.filter(p=>p.status==='connected'||p.status==='syncing').length;
+
+  if (!peers.length) {
+    list.innerHTML = `<div class="no-xfer" style="margin-top:20px">
+      <div class="no-xfer-emblem">
+        <svg viewBox="0 0 50 50" fill="none">
+          <polygon points="25,3 47,25 25,47 3,25" stroke="#c9a84c" stroke-width="0.8"/>
+          <circle cx="25" cy="25" r="8" stroke="#c9a84c" stroke-width="0.6"/>
+        </svg>
+      </div>
+      No peers discovered.<br>Waiting for mDNS or manual dial.
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = peers.map(p => `
+    <div class="peer-card ${p.status}">
+      <div class="pc-inner">
+        <div class="pc-row1">
+          <span class="pc-name">${p.name || nickname(p.id)}</span>
+          <span class="pc-tag tag-${p.status}">${p.status.toUpperCase()}</span>
+        </div>
+        <div class="pc-id">${p.id.slice(0,24)}…</div>
+        <div class="pc-meta">
+          <div class="pcm"><span class="pcm-l">Rx Chk</span><span class="pcm-v">${p.chunksRx||0}</span></div>
+          <div class="pcm"><span class="pcm-l">Tx Chk</span><span class="pcm-v">${p.chunksTx||0}</span></div>
+          <div class="pcm"><span class="pcm-l">Files</span><span class="pcm-v">${p.files||0}</span></div>
+        </div>
+      </div>
+      <div class="pc-actions">
+        <button class="btn btn-a sm"
+          onclick="requestSync('${p.id}')"
+          ${p.status==='discovered'||p.status==='connected' ? '' : 'disabled'}>
+          ✦ Sync
+        </button>
+        ${p.status==='discovered'
+          ? `<button class="btn btn-n sm" onclick="dialById('${p.id}','${p.addr||''}')">Dial</button>`
+          : `<button class="btn btn-r sm" onclick="disconnectPeer('${p.id}')">Disc</button>`
+        }
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER TRANSFER
+// ═══════════════════════════════════════════════════════════
+function renderTransfer(peerId) {
+  const t = S.transfers[peerId];
+  const card = document.getElementById('xferCard');
+  if (!t) return;
+
+  const pct     = t.total ? Math.round(t.done / t.total * 100) : 0;
+  const elapsed = (Date.now() - t.startMs) / 1000;
+  const speed   = elapsed > 0 ? ((t.done * 1048576) / elapsed / (1024*1024)).toFixed(1) : '0.0';
+  const rem     = t.done > 0 && elapsed > 0
+    ? Math.ceil((t.total - t.done) / (t.done / elapsed)) : '—';
+  const ext     = t.fileName.split('.').pop().toUpperCase().slice(0,4);
+  const sizeMB  = (t.fileSize / (1024*1024)).toFixed(1);
+
+  const show  = Math.min(t.total, 300);
+  const ratio = t.total / show;
+  let cells = '';
+  for (let i = 0; i < show; i++) {
+    const idx = Math.floor(i * ratio);
+    const st  = t.chunkStates[idx];
+    const cls = st===1 ? 'done' : st===2 ? 'fail' : (idx===t.done ? 'active' : '');
+    cells += `<div class="ck ${cls}" title="Chunk ${idx}"></div>`;
+  }
+
+  card.innerHTML = `
+    <div class="xfer-card">
+      <div class="xfer-head">
+        <div class="xfer-fname">
+          <svg width="13" height="13" fill="none" stroke="var(--gold3)" stroke-width="1.5" viewBox="0 0 24 24">
+            <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/>
+            <polyline points="13 2 13 9 20 9"/>
+          </svg>
+          ${t.fileName} <span class="xfer-ext">${ext}</span>
+        </div>
+        <div class="xfer-from">FROM: ${short(peerId)}</div>
+      </div>
+      <div class="xfer-body">
+        <div class="prog-info">
+          <span class="prog-pct">${pct}%</span>
+          <span class="prog-frac">${t.done} / ${t.total} chunks · ${sizeMB} MB</span>
+        </div>
+        <div class="prog-outer">
+          <div class="prog-inner" style="width:${pct}%"></div>
+        </div>
+        <div class="chunk-grid">${cells}</div>
+        <div class="xfer-stats">
+          <div class="xs"><span class="xs-l">Speed</span><span class="xs-v a">${speed} MB/s</span></div>
+          <div class="xs"><span class="xs-l">ETA</span><span class="xs-v">${typeof rem==='number'?rem+'s':rem}</span></div>
+          <div class="xs"><span class="xs-l">Verified</span><span class="xs-v g">${t.done} ✓</span></div>
+          <div class="xs"><span class="xs-l">Failed</span><span class="xs-v" style="color:${t.failed?'var(--crimson2)':'var(--text)'}">${t.failed}</span></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER QUEUE
+// ═══════════════════════════════════════════════════════════
+function renderQueue() {
+  const el = document.getElementById('queueList');
+  if (!S.queue.length) {
+    el.innerHTML = '<div class="no-xfer">The queue is empty.</div>';
+    document.getElementById('hXfers').textContent = 0;
+    return;
+  }
+  el.innerHTML = S.queue.map((q,i) => {
+    const pct  = q.total ? Math.round(q.done/q.total*100) : 0;
+    const done = q.done >= q.total;
+    return `<div class="qi">
+      <div class="qi-icon">${q.ext}</div>
+      <div class="qi-info">
+        <div class="qi-name">${q.fileName}</div>
+        <div class="qi-sub">PEER: ${nickname(q.peerId)} · ${q.total} chunks</div>
+      </div>
+      <div class="qi-bar"><div class="qi-bar-f" style="width:${pct}%"></div></div>
+      <div class="qi-pct" style="color:${done?'var(--verdigris2)':'var(--text2)'}">${done?'✦':pct+'%'}</div>
+      ${done?`<button class="btn btn-n sm" onclick="S.queue.splice(${i},1);renderQueue()">✕</button>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('hXfers').textContent = S.queue.filter(q=>q.done<q.total).length;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILES TAB
+// ═══════════════════════════════════════════════════════════
+function renderLocalFiles() {
+  const el = document.getElementById('fileList');
+  if (!S.localFiles || !S.localFiles.length) {
+    el.innerHTML = '<div class="no-xfer">Folder is empty or not set.</div>';
+    return;
+  }
+  el.innerHTML = S.localFiles.map(f => {
+    const sizeMB = f.size >= 1048576
+      ? (f.size/1048576).toFixed(1) + ' MB'
+      : f.size >= 1024
+        ? (f.size/1024).toFixed(0) + ' KB'
+        : f.size + ' B';
+    return `<div class="file-row">
+      <svg width="13" height="13" fill="none" stroke="var(--gold3)" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/>
+        <polyline points="13 2 13 9 20 9"/>
+      </svg>
+      <div class="fi-name">${f.name}</div>
+      <div class="fi-size">${sizeMB}</div>
+      <span class="fi-rune" title="${f.chunks} chunks">✦</span>
+    </div>`;
+  }).join('');
+}
+
+function refreshFiles() { renderLocalFiles(); }
+
+// ═══════════════════════════════════════════════════════════
+// COMMANDS
+// ═══════════════════════════════════════════════════════════
+function browseFolderNative() {
+  if (window.showDirectoryPicker) {
+    window.showDirectoryPicker({ mode: 'readwrite' })
+      .then(dir => {
+        document.getElementById('inFolder').value = dir.name;
+        toast('Selected: ' + dir.name + ' — verify path, then SET', 'ok');
+      })
+      .catch(e => { if (e.name !== 'AbortError') toast('Picker error: ' + e.message, 'err'); });
+    return;
+  }
+  let input = document.getElementById('_folderInput');
+  if (!input) {
+    input = document.createElement('input');
+    input.type = 'file'; input.id = '_folderInput';
+    input.setAttribute('webkitdirectory',''); input.setAttribute('directory','');
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    input.addEventListener('change', () => {
+      if (input.files && input.files.length > 0) {
+        const rel = input.files[0].webkitRelativePath;
+        document.getElementById('inFolder').value = rel.split('/')[0];
+        toast('Folder selected — verify path, then SET', 'ok');
+      }
+      input.value = '';
+    });
+  }
+  input.click();
+}
+
+function setFolder() {
+  const p = document.getElementById('inFolder').value.trim();
+  if (!p) { toast('Enter a folder path', 'err'); return; }
+  send({ type:'SetFolder', path:p });
+  S.syncFolder = p;
+  document.getElementById('folderLabel').textContent = 'Sync Folder — ' + p;
+  addLog('INFO', 'Setting sync folder: ' + p);
+}
+
+function dialPeer() {
+  const pid  = document.getElementById('inPeerId').value.trim();
+  const addr = document.getElementById('inAddr').value.trim() || null;
+  if (!pid) { toast('Enter a Peer ID', 'err'); return; }
+  send({ type:'DialPeer', peer_id:pid, addr });
+  addLog('INFO', 'Dialing ' + short(pid) + '…');
+}
+
+function dialById(pid, addr) {
+  send({ type:'DialPeer', peer_id:pid, addr:addr||null });
+  addLog('INFO', 'Dialing discovered peer ' + short(pid));
+}
+
+function requestSync(peerId) {
+  if (!S.syncFolder) {
+    const f = document.getElementById('inFolder').value.trim();
+    if (f) setFolder();
+    else { toast('Set a sync folder first', 'warn'); return; }
+  }
+  send({ type:'RequestSync', peer_id:peerId });
+  addLog('INFO', 'Requesting sync from ' + short(peerId));
+  if (S.peers[peerId]) S.peers[peerId].status = 'syncing';
+  renderPeers();
+}
+
+function disconnectPeer(peerId) { send({ type:'Disconnect', peer_id:peerId }); }
+
+function doSync() {
+  const pid    = document.getElementById('m_peerId').value.trim();
+  const addr   = document.getElementById('m_addr').value.trim() || null;
+  const folder = document.getElementById('m_folder').value.trim();
+  if (!pid) { toast('Enter a Peer ID', 'err'); return; }
+  if (folder) {
+    send({ type:'SetFolder', path:folder });
+    S.syncFolder = folder;
+    document.getElementById('inFolder').value = folder;
+    document.getElementById('folderLabel').textContent = 'Sync Folder — ' + folder;
+  }
+  send({ type:'DialPeer', peer_id:pid, addr });
+  setTimeout(() => {
+    if (S.peers[pid] && (S.peers[pid].status==='connected'||S.peers[pid].status==='syncing'))
+      send({ type:'RequestSync', peer_id:pid });
+  }, 1500);
+  closeModal('mSync');
+  addLog('INFO', 'Initiating sync with ' + short(pid));
+  toast('Connecting to ' + short(pid) + '…', 'ok');
+}
+
+function clearDone() {
+  S.queue = S.queue.filter(q => q.done < q.total);
+  renderQueue();
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════════════════════
+function addLog(level, msg) {
+  if (S.logPaused) return;
+  const body = document.getElementById('logBody');
+  const now  = new Date().toTimeString().slice(0,8);
+  const line = document.createElement('div');
+  line.className = `ll ll-${level}`;
+  line.innerHTML =
+    `<span class="ll-t">${now}</span>` +
+    `<span class="ll-lv">${level}</span>` +
+    `<span class="ll-m">${escHtml(msg)}</span>`;
+  body.appendChild(line);
+  body.scrollTop = body.scrollHeight;
+  while (body.children.length > 400) body.removeChild(body.firstChild);
+}
+function clearLog() { document.getElementById('logBody').innerHTML = ''; }
+function togglePause() {
+  S.logPaused = !S.logPaused;
+  document.getElementById('pauseBtn').textContent = S.logPaused ? '▶' : '⏸';
+  toast(S.logPaused ? 'Log paused' : 'Log resumed', 'ok');
+}
+
+// ═══════════════════════════════════════════════════════════
+// BANDWIDTH CHART
+// ═══════════════════════════════════════════════════════════
+const canvas = document.getElementById('bwc');
+const ctx    = canvas.getContext('2d');
+function resizeCv() { canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight; }
+resizeCv();
+window.addEventListener('resize', resizeCv);
+
+function drawChart() {
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const N=S.bwDl.length;
+  const max=Math.max(1,...S.bwDl,...S.bwUl);
+  const sx=W/(N-1);
+
+  // subtle grid
+  ctx.strokeStyle='rgba(61,48,32,.6)'; ctx.lineWidth=1;
+  for(let i=1;i<4;i++){
+    const y=H*i/4;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+
+  function drawLine(data, color, fillColor) {
+    ctx.beginPath();
+    data.forEach((v,i)=>{
+      const x=i*sx, y=H-(v/max)*H*.88-H*.06;
+      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    });
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+    ctx.fillStyle=fillColor; ctx.fill();
+  }
+
+  drawLine(S.bwDl, '#3d9e8a', 'rgba(61,158,138,.07)');
+  drawLine(S.bwUl, '#c9a84c', 'rgba(201,168,76,.07)');
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function updateHeader() {
+  document.getElementById('hChunks').textContent = S.chunksRx;
+  document.getElementById('ckCount').textContent = S.chunksRx + ' / ' + S.chunksTx;
+  const rxMB = S.totalRxBytes / (1024*1024);
+  document.getElementById('totalRx').textContent =
+    rxMB > 1024 ? (rxMB/1024).toFixed(2)+' GB' : rxMB.toFixed(1)+' MB';
+}
+function setDot(cls) { document.getElementById('dotStatus').className = cls; }
+function setStatus(t) { document.getElementById('hStatus').textContent = t; }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o =>
+  o.addEventListener('click', e => { if(e.target===o) closeModal(o.id); }));
+
+function saveSettings() {
+  S.wsUrl = document.getElementById('s_wsUrl').value.trim();
+  closeModal('mSettings'); connect();
+  toast('Reconnecting to ' + S.wsUrl, 'ok');
+}
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+function toast(msg, type='ok') {
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`; t.textContent=msg;
+  c.appendChild(t); setTimeout(()=>t.remove(),4200);
+}
+function short(id)    { return id ? id.slice(0,14)+'…' : '?'; }
+function nickname(id) {
+  if (!id) return '?';
+  const p = S.peers[id];
+  if (p && p.name) return p.name;
+  return 'Node-' + id.slice(-8).toUpperCase();
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function copyId() {
+  if (S.myId) { navigator.clipboard?.writeText(S.myId); toast('Node ID copied','ok'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TICK
+// ═══════════════════════════════════════════════════════════
+let prevChunks = 0;
+setInterval(() => {
+  S.uptime++;
+  const h=String(Math.floor(S.uptime/3600)).padStart(2,'0');
+  const m=String(Math.floor((S.uptime%3600)/60)).padStart(2,'0');
+  const s=String(S.uptime%60).padStart(2,'0');
+  document.getElementById('uptimeVal').textContent = `${h}:${m}:${s}`;
+
+  const delta  = S.chunksRx - prevChunks;
+  prevChunks   = S.chunksRx;
+  const dlMBps = delta * 1048576 / (1024*1024);
+  const ulMBps = S.chunksTx > 0 ? dlMBps * 0.4 : 0;
+  S.bwDl.push(dlMBps); S.bwDl.shift();
+  S.bwUl.push(ulMBps); S.bwUl.shift();
+  document.getElementById('dlVal').innerHTML = dlMBps.toFixed(1)+' <span>MB/s</span>';
+  document.getElementById('ulVal').innerHTML = ulMBps.toFixed(1)+' <span>MB/s</span>';
+  drawChart();
+}, 1000);
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+addLog('INFO', 'Vitruvius — initialising connection to backend…');
+connect();
+</script>
+</body>
+</html>
